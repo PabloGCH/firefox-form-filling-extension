@@ -6,11 +6,11 @@
   const { modelClient, notifications, sessionState, validators } =
     globalThis.AIFormFiller;
 
-  // Allows secret-bearing responses only to extension-owned pages, never tabs.
+  // Allows secret-bearing operations only from extension URLs, including options tabs.
   const requireExtensionPage = (sender) => {
     const extensionRoot = browser.runtime.getURL("");
 
-    if (sender.tab || !sender.url?.startsWith(extensionRoot)) {
+    if (!sender.url?.startsWith(extensionRoot)) {
       throw new Error("This data is available only on the extension settings page.");
     }
   };
