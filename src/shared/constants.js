@@ -46,6 +46,13 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     EXPORT_FILE_NAME: "ai-form-filler-models.json",
     EXPORT_WARNING:
       "This file includes API keys in plain text. Anyone with the file can read them. Store it securely. Export models now?",
+    FILL_FAILURE_CATEGORIES: Object.freeze([
+      "setup is incomplete",
+      "no inputs were found",
+      "the model was unavailable",
+      "the model response was invalid",
+      "the fill could not be completed",
+    ]),
     INFO_EDIT_DELAY_MS: 300,
     HIDDEN_FIELDS_NOTIFICATION:
       "Invisible fields found. Review the on-page warning before any data is sent.",

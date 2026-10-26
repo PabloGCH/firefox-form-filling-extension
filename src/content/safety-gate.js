@@ -21,6 +21,10 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     const fields = new Set(scope.querySelectorAll("input, select, textarea"));
     const form = scope instanceof Element ? scope.closest("form") : null;
 
+    if (scope instanceof Element && scope.matches("input, select, textarea")) {
+      fields.add(scope);
+    }
+
     form?.querySelectorAll("input, select, textarea").forEach((field) => {
       fields.add(field);
     });

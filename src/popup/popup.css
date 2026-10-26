@@ -33,10 +33,17 @@ button {
   padding: 7px;
 }
 
-.actions {
+.actions,
+.fill-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+}
+
+.fill-actions button:first-child {
+  background: #1769aa;
+  color: #fff;
 }
 
 button:focus-visible,

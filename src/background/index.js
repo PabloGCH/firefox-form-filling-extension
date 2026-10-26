@@ -40,6 +40,59 @@
     return result.value;
   };
 
+  // Clears state first, then asks every injected page to clear selection and UI.
+  const clearSessionData = async () => {
+    const snapshot = sessionState.clearAllData();
+    const tabs = await browser.tabs.query({});
+    await Promise.allSettled(
+      tabs.map((tab) =>
+        browser.tabs.sendMessage(tab.id, { type: "session:cleared" }),
+      ),
+    );
+    return snapshot;
+  };
+
+  // Keeps reference text and model credentials inside the background page.
+  const fillFields = async (message, sender) => {
+    if (!sender.tab || message.safetyChecked !== true) {
+      throw new Error("The form safety check did not authorize this fill.");
+    }
+
+    if (!Array.isArray(message.fields) || message.fields.length === 0) {
+      throw new Error("No fillable fields were provided.");
+    }
+
+    const infoText = sessionState.getInfoText();
+    const model = sessionState.getActiveModel();
+
+    if (!infoText) {
+      throw new Error("No personal information is loaded.");
+    }
+
+    if (!model) {
+      throw new Error("No active model is loaded.");
+    }
+
+    const controller = sessionState.beginFill(message.fields);
+
+    try {
+      const values = await modelClient.fillFields(
+        { ...model },
+        {
+          alreadyFilled: [],
+          fields: message.fields,
+          infoText,
+        },
+        controller.signal,
+      );
+      sessionState.finishFill(controller, values);
+      return values;
+    } catch (error) {
+      sessionState.finishFill(controller);
+      throw error;
+    }
+  };
+
   // Handles session and settings messages from extension pages.
   const handleMessage = async (message, sender) => {
     if (!message || typeof message.type !== "string") {
@@ -49,10 +102,22 @@
     switch (message.type) {
       case "session:get-summary":
         return sessionState.getPublicSnapshot();
+      case "session:get-fill-readiness": {
+        const snapshot = sessionState.getPublicSnapshot();
+        return {
+          infoLoaded: snapshot.infoFile.loaded,
+          modelLoaded: Boolean(snapshot.activeModelName),
+          replaceExistingValues: snapshot.settings.replaceExistingValues,
+        };
+      }
       case "session:clear":
-        return sessionState.clearAllData();
+        return clearSessionData();
       case "notification:hidden-fields":
         return notifications.showHiddenFieldsWarning();
+      case "notification:fill-result":
+        return notifications.showFillResult(message.outcome, message.category);
+      case "fill:request":
+        return fillFields(message, sender);
       case "settings:get-info":
         requireExtensionPage(sender);
         return sessionState.getInfoForOptions();

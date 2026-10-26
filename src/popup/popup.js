@@ -45,6 +45,23 @@
     render(await browser.runtime.sendMessage({ type: "session:get-summary" }));
   };
 
+  // Sends a user action to the active page where content scripts own the DOM.
+  const sendToActivePage = async (message) => {
+    try {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tab = tabs[0];
+
+      if (!tab?.id) {
+        throw new Error("No active webpage is available.");
+      }
+
+      await browser.tabs.sendMessage(tab.id, message);
+      window.close();
+    } catch {
+      showStatus("Open a regular webpage and try again.", true);
+    }
+  };
+
   // Selects a loaded model without persisting that choice.
   const changeActiveModel = async (event) => {
     try {
@@ -91,6 +108,15 @@
       .addEventListener("change", changeActiveModel);
     document.querySelector("#clear-data").addEventListener("click", clearData);
     document.querySelector("#open-settings").addEventListener("click", openSettings);
+    document.querySelector("#fill-form").addEventListener("click", () => {
+      sendToActivePage({ type: "fill:start", newFieldsOnly: false });
+    });
+    document.querySelector("#fill-new").addEventListener("click", () => {
+      sendToActivePage({ type: "fill:start", newFieldsOnly: true });
+    });
+    document.querySelector("#select-area").addEventListener("click", () => {
+      sendToActivePage({ type: "picker:start" });
+    });
 
     try {
       await refresh();

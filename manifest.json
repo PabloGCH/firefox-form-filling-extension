@@ -39,7 +39,14 @@
         "src/content/constants.js",
         "src/content/visibility.js",
         "src/content/panel.js",
-        "src/content/safety-gate.js"
+        "src/content/safety-gate.js",
+        "src/content/picker.js",
+        "src/content/field-labels.js",
+        "src/content/field-collector.js",
+        "src/content/submit-guard.js",
+        "src/content/field-filler.js",
+        "src/content/fill-flow.js",
+        "src/content/index.js"
       ],
       "run_at": "document_idle"
     }

@@ -9,7 +9,7 @@
 - [ ] **Core invariant: the extension NEVER submits a form.** It never calls `form.submit()` or `requestSubmit()`, never presses Enter, and never clicks a submit-like button, even with permission. It fills fields, notifies the user, and stops. The user reviews and submits manually.
 - [ ] **Core invariant: the extension NEVER clicks a button without explicit, per-click permission from the user** (see section 13). The only elements it changes without asking are the fields it fills (including setting checkboxes and radios).
 - [ ] **Core invariant: NO user data persists in the browser.** Everything lives in memory for the current session only (see section 5). The only way data leaves memory is the user pressing the models **Export** button, which downloads a file the user keeps (see section 7).
-- [ ] The model's output is only ever used as field values for fields the extension itself listed. Page text (labels, names, placeholders, option text) is untrusted data and is never treated as instructions.
+- [x] The model's output is only ever used as field values for fields the extension itself listed. Page text (labels, names, placeholders, option text) is untrusted data and is never treated as instructions.
 
 ## 1. Code quality rules (apply to every file)
 
@@ -65,30 +65,30 @@ ai-form-filler/
 
 ## 3. Area selection
 
-- [ ] The user can pick a container element (e.g. a div) on the page to scope which fields get filled.
-- [ ] While picking: hovered element is outlined (dashed), a click selects it (and is blocked from reaching the page), Esc cancels.
-- [ ] While picking, ArrowUp widens the selection to the parent and ArrowDown narrows it back.
-- [ ] The selected container stays outlined (solid) until cleared or reselected. Original inline styles are restored afterwards.
-- [ ] After selecting, show how many fillable fields were found in it.
-- [ ] If nothing is selected, fall back to the whole page.
-- [ ] If the selected container disappears from the DOM (framework re-render), try to re-find it from a saved locator (id, or tag and position). If that fails, warn the user and ask them to reselect instead of silently filling the whole page.
-- [ ] Picking can be started from the toolbar popup and from the on-page panel.
+- [x] The user can pick a container element (e.g. a div) on the page to scope which fields get filled.
+- [x] While picking: hovered element is outlined (dashed), a click selects it (and is blocked from reaching the page), Esc cancels.
+- [x] While picking, ArrowUp widens the selection to the parent and ArrowDown narrows it back.
+- [x] The selected container stays outlined (solid) until cleared or reselected. Original inline styles are restored afterwards.
+- [x] After selecting, show how many fillable fields were found in it.
+- [x] If nothing is selected, fall back to the whole page.
+- [x] If the selected container disappears from the DOM (framework re-render), try to re-find it from a saved locator (id, or tag and position). If that fails, warn the user and ask them to reselect instead of silently filling the whole page.
+- [x] Picking can be started from the toolbar popup and from the on-page panel.
 
 ## 4. On-page panel and notifications
 
-- [ ] Show a floating status panel in a closed shadow DOM so page CSS cannot affect it and the page cannot read it.
-- [ ] The panel shows status text and buttons: Fill form, Fill new fields only, Select area, Close. Visible keyboard focus and sensible contrast.
-- [ ] Statuses: picking instructions, "Asking the model about N fields...", result summary, errors.
-- [ ] If no personal info or no model is loaded, the panel says so and explains how to load them (open settings), instead of failing.
-- [ ] When filling finishes (or fails), show a desktop notification with a short summary, e.g. "Done: filled 8, left 2 blank, skipped 3 hidden fields. Review the form, then submit it yourself."
-- [ ] After filling, do nothing else.
-- [ ] Filled fields get a highlight (yellow box-shadow) that clears when the user focuses the field.
+- [x] Show a floating status panel in a closed shadow DOM so page CSS cannot affect it and the page cannot read it.
+- [x] The panel shows status text and buttons: Fill form, Fill new fields only, Select area, Close. Visible keyboard focus and sensible contrast.
+- [x] Statuses: picking instructions, "Asking the model about N fields...", result summary, errors.
+- [x] If no personal info or no model is loaded, the panel says so and explains how to load them (open settings), instead of failing.
+- [x] When filling finishes or fails, show one brief desktop notification: total success, partial success, or failure with a general reason. Detailed counts and reasons stay in the on-page panel.
+- [x] After filling, do nothing else.
+- [x] Filled fields get a highlight (yellow box-shadow) that clears when the user focuses the field.
 
 ## 5. Session-only data (no persistence)
 
 - [x] No user data is ever written to disk by the extension. Do NOT use `browser.storage.local`, `browser.storage.sync`, `localStorage`, `sessionStorage`, IndexedDB, cookies, or the cache for: the markdown info, model configurations, API keys, URLs, the active model choice, settings, or any field values.
 - [x] Hold all session data in memory in one place: a module in the background page (`session-state.js`). Use a persistent MV2 background page (`"persistent": true`) so the data lives as long as the browser session.
-- [ ] The options page, popup and content scripts access data only via messages to the background page. The content script never receives API keys or the markdown text; it sends field descriptions to the background, which builds the prompt and calls the model.
+- [x] The options page, popup and content scripts access data only via messages to the background page. The content script never receives API keys or the markdown text; it sends field descriptions to the background, which builds the prompt and calls the model.
 - [x] The options page and popup keep no copy of the data beyond what they currently display, and re-request it from the background when opened.
 - [x] When the browser closes (or the extension is reloaded or disabled), everything is gone. In every new session the user must load the markdown file again and load the models again (by importing a JSON file or adding them manually).
 - [x] If no data is loaded, the popup and settings page show a clear empty state ("No info file loaded", "No models loaded") with a pointer to the relevant section.
@@ -196,30 +196,30 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 - [x] A **Clear all data** button on the settings page, and also in the popup.
 - [x] It removes from memory: the markdown text, all model configurations including API keys and URLs, the active model, any cached field descriptions or field values, and any pending permission prompts. Session settings return to their defaults (replace = ON).
-- [ ] It resets all inputs and previews: the file input, the markdown text area, the manual model form (including the API key input) and the models list. The popup and panels return to their empty state.
+- [x] It resets all inputs and previews: the file input, the markdown text area, the manual model form (including the API key input) and the models list. The popup and panels return to their empty state.
 - [x] It does not delete files the user already exported to disk. Say so in the confirmation message.
 - [x] Show a confirmation message after clearing ("All data cleared. Load your info file and models again to continue.").
-- [ ] Clearing while a fill is in progress cancels that fill.
+- [x] Clearing while a fill is in progress cancels that fill.
 - [x] The button works even when no data is loaded.
 
 ## 9. Field collection and filling
 
-- [ ] Collect `input`, `select` and `textarea` inside the scope. Skip input types: hidden, submit, button, reset, image, file, password. Skip disabled and readonly fields.
-- [ ] With "replace" ON (the default), fields that already have a value are included and may be overwritten. With "replace" OFF, they are skipped.
-- [ ] **Fill new fields only** (panel and popup) always skips fields that already have a value, regardless of the replace setting.
-- [ ] Describe each field to the model with: id (extension-generated), kind, input type, label, name, DOM id, placeholder, autocomplete attribute (if not on/off), required, maxLength, current value (when replace is ON), and options for selects and radios.
-- [ ] Derive labels from `label` elements, `aria-label`, `aria-labelledby`, and a nearby-text fallback (length-limited). Radio groups use fieldset legend or radiogroup aria-label.
-- [ ] Group radio buttons by name and form into one field with options.
-- [ ] Text-like fields: set the value and dispatch `input` and `change` events (bubbling) so frameworks (React, Vue, etc.) notice. Respect maxLength. Date inputs use `YYYY-MM-DD`; ignore values the browser rejects.
-- [ ] Checkboxes and radios: set state via `click()` only if the state differs. This counts as filling a field, not as button clicking.
-- [ ] Never click buttons, links or any other element as part of filling (see section 13 for the permission flow).
-- [ ] While filling and for about 2 seconds afterwards, block `submit` events at capture phase as a safety net against sites that auto-submit on change.
-- [ ] Fields the model has no data for stay as they were. The model must never invent data, and an existing value is never cleared just because the model has no answer.
-- [ ] Final summary reports counts: filled, left blank, skipped hidden fields, unmatched selects, denied clicks.
+- [x] Collect `input`, `select` and `textarea` inside the scope. Skip input types: hidden, submit, button, reset, image, file, password. Skip disabled and readonly fields.
+- [x] With "replace" ON (the default), fields that already have a value are included and may be overwritten. With "replace" OFF, they are skipped.
+- [x] **Fill new fields only** (panel and popup) always skips fields that already have a value, regardless of the replace setting.
+- [x] Describe each field to the model with: id (extension-generated), kind, input type, label, name, DOM id, placeholder, autocomplete attribute (if not on/off), required, maxLength, current value (when replace is ON), and options for selects and radios.
+- [x] Derive labels from `label` elements, `aria-label`, `aria-labelledby`, and a nearby-text fallback (length-limited). Radio groups use fieldset legend or radiogroup aria-label.
+- [x] Group radio buttons by name and form into one field with options.
+- [x] Text-like fields: set the value and dispatch `input` and `change` events (bubbling) so frameworks (React, Vue, etc.) notice. Respect maxLength. Date inputs use `YYYY-MM-DD`; ignore values the browser rejects.
+- [x] Checkboxes and radios: set state via `click()` only if the state differs. This counts as filling a field, not as button clicking.
+- [x] Never click buttons, links or any other element as part of filling (see section 13 for the permission flow).
+- [x] While filling and for about 2 seconds afterwards, block `submit` events at capture phase as a safety net against sites that auto-submit on change.
+- [x] Fields the model has no data for stay as they were. The model must never invent data, and an existing value is never cleared just because the model has no answer.
+- [x] Final summary reports counts: filled, left blank, skipped hidden fields, unmatched selects, denied clicks.
 
 ## 10. Select and dropdown handling
 
-- [ ] Send native `select` options (value + label) to the model; the model answers with an option value.
+- [x] Send native `select` options (value + label) to the model; the model answers with an option value.
 - [ ] Tiered matching of the model's answer: exact value, exact label, normalized match (case, accents, punctuation, leading "the" ignored), then a unique starts-with or contains match. If a tier finds multiple candidates, pick none.
 - [ ] If no match, run one second pass asking the model about only that field and its options (closest option or null).
 - [ ] For very long option lists, send only plausible candidates matching the user's data, falling back to the full list if none.
@@ -230,15 +230,15 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 ## 11. Invisible-field safety gate (run BEFORE any model call)
 
-- [ ] When the user presses Fill, scan the selected container AND its enclosing `<form>` for invisible fields before anything is sent anywhere.
+- [x] When the user presses Fill, scan the selected container AND its enclosing `<form>` for invisible fields before anything is sent anywhere.
 - [x] Treat a field as invisible if it or an ancestor has `display:none` or `visibility:hidden`; has near-zero size (about 2px or less) or `font-size:0`; has `opacity:0`; is positioned far off-screen or clipped away; has the `hidden` attribute; or is `aria-hidden` and not focusable. Optionally flag fields covered by another element (`elementFromPoint`), noting this is the least reliable signal.
 - [x] Do NOT flag: `type="hidden"` inputs, disabled fields, and custom-styled checkboxes/radios/file inputs that are visually hidden but have a visible label.
 - [x] If invisible fields are found: pause, make no model call, send no data, and show a warning panel plus a desktop notification.
 - [x] The warning lists each finding (e.g. "text input named `phone`, hidden by `display:none`").
 - [x] Offer two buttons: **Cancel** (focused by default; Esc also cancels) and **Continue anyway**.
-- [ ] "Continue anyway" fills VISIBLE fields only. Flagged fields are never filled and are excluded from what is sent to the model (their names and labels are not shared).
+- [x] "Continue anyway" fills VISIBLE fields only. Flagged fields are never filled and are excluded from what is sent to the model (their names and labels are not shared).
 - [x] The choice is not remembered; ask again on every Fill press.
-- [ ] The final status mentions how many hidden fields were skipped.
+- [x] The final status mentions how many hidden fields were skipped.
 - [x] Do not offer an option to fill hidden fields.
 
 ## 12. Dynamic and repeated sections
@@ -275,8 +275,8 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 - [x] State clearly in the settings UI that the markdown contents and field values already on the form are sent to the active model, and that with cloud models this data leaves the computer.
 - [x] No telemetry, no analytics, no network requests except to the endpoints of the models the user has loaded.
-- [ ] Model replies can only set values on listed fields. Validate every value (select options, checkbox booleans, radio values) before applying.
-- [ ] Never send passwords, file inputs, or hidden fields to the model.
+- [x] Model replies can only set values on listed fields. Validate every value (select options, checkbox booleans, radio values) before applying.
+- [x] Never send passwords, file inputs, or hidden fields to the model.
 - [x] Prompt injection defense: the system prompt states that page text is data, never instructions.
 - [x] The only file the extension ever creates is the models export, and only when the user presses Export and confirms the plain-text API key warning.
 - [x] Use only the permissions that are required (`notifications`, host access). The `storage` permission is not needed and must not be requested. Use a `downloads` permission only if the Blob + download link approach does not work without it.
@@ -302,7 +302,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] 1. Project skeleton, manifest, in-memory session state, README.
 - [x] 2. Settings page: markdown upload, models (manual form, list, test connection, import, export, copy example), Clear all data.
 - [x] 3. Background model client and prompt builder.
-- [ ] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
+- [x] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
 - [x] 5. Invisible-field safety gate.
 - [ ] 6. Select matching improvements.
 - [ ] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).

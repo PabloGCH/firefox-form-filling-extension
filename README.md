@@ -4,11 +4,11 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 5 — Invisible-field safety gate (completed before Task 4 by user decision).
-- **Next task:** Task 4 — Content script picker, full panel, field collector, filler, and core flow.
-- **What works:** Settings, popup, and background model infrastructure remain available. The injected safety gate scans a scope plus its enclosing form, identifies required concealment signals, exempts disabled/native-hidden/custom-labeled controls, lists findings in a closed-shadow warning, sends a data-free desktop notification, defaults to Cancel, supports Escape, and returns an exclusion set only after **Continue anyway**.
-- **Known limitations:** Task 4 does not yet provide a Fill button, so invoking the gate on every Fill and reporting its skipped count in the final fill summary remain unticked integration requirements. Model filling is still not exposed through message routing. Real file-picker, clipboard, download, notification, and live model behavior still need manual checks.
-- **Verification:** A real browser DOM exercise detected seven distinct hidden-field cases while excluding visible, disabled, `type=hidden`, and custom-labeled controls; it also found a hidden sibling in the enclosing form. Cancel, Escape, Continue, exclusion counts, and notification content checks passed. Syntax and forbidden API scans passed; `web-ext lint` reported zero errors plus the known future warnings, and Firefox 158 loaded the content scripts as a temporary add-on.
+- **Last completed task:** Task 4 — Content script picker, panel, collector, filler, and core end-to-end flow (completed after prerequisite Task 5).
+- **Next task:** Task 6 — Select matching improvements.
+- **What works:** The popup and closed-shadow page panel start normal or new-fields-only fills and area selection. Selection supports hover/click/Escape/parent navigation, persists visibly, and re-finds replaced containers. Every fill checks readiness and hidden fields, sends only visible listed descriptions to the background model client, applies validated text/date/checkbox/radio/exact-select values, blocks submission, highlights changes, and reports a detailed panel summary plus one brief final notification.
+- **Known limitations:** Native selects currently require an exact option value; advanced matching, second-pass correction, multi-select refinement, and dependent-dropdown rescans are Task 6. Repeated-section context and robust re-render/new-field handling are Task 7. Custom dropdown and add-section clicks remain disabled until Task 8. Live model behavior and the README manual checks are unverified.
+- **Verification:** Browser exercises covered picker navigation/click blocking/style restoration, labels and radio grouping, password/file/button exclusion, replace-off and new-fields-only behavior, exact selects, text/date/checkbox/radio filling, unknown-value preservation, submit blocking, highlighting, the complete safety-to-model-to-fill pipeline, brief final outcomes, and clear-during-fill cancellation. Background secret isolation and safety authorization passed; `web-ext lint` had zero errors and Firefox 158 loaded the extension temporarily.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
@@ -18,6 +18,7 @@ A Firefox desktop extension that will use a cloud or local language model to fil
   - Cross-task requirements may remain unticked until their later component exists; Task 2 is complete in its settings/popup scope, while panel reset stays deferred to Task 4.
   - Task 5 was moved before Task 4 at the user's direction so its pre-call check exists before the first form-data model call; Task 4 will integrate its remaining trigger and summary requirements.
   - Approved safety warning and notification wording is used by the hidden-field gate.
+  - Final fill notifications use only total success, partial success, or failure with a general category; detailed counts stay in the panel. The separate hidden-field safety notification remains allowed.
 - **Open questions:** None.
 
 ## Privacy and session lifetime
@@ -47,7 +48,15 @@ Temporary add-ons are removed when Firefox closes. Use the toolbar popup to open
 5. Use **Export models (JSON)** if you want to keep model configuration for another session. The confirmed export includes API keys in plain text.
 6. Use **Clear all data** to remove all in-memory information and restore session defaults.
 
-Form collection and filling are not implemented yet.
+## Filling a form
+
+1. Load information and at least one model in settings, then open a normal webpage containing a form.
+2. Optionally choose **Select area** in the popup or page panel. Hover and click a container; use **ArrowUp** or **ArrowDown** to adjust, or **Esc** to cancel.
+3. Choose **Fill form** to follow the session replacement preference, or **Fill new fields only** to preserve every non-empty control.
+4. If invisible fields are reported, review the list. **Cancel** sends nothing; **Continue anyway** excludes every reported field from both the request and filling.
+5. Review highlighted values and submit the form yourself. The extension never submits it.
+
+Current native-select matching accepts exact option values only. More tolerant matching arrives in Task 6.
 
 ## Personal information markdown
 

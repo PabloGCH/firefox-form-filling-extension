@@ -169,6 +169,31 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     return model ? copyModel(model) : null;
   };
 
+  // Returns the active secret-bearing model only to background orchestration.
+  const getActiveModel = () => getModel(state.activeModelName);
+
+  // Returns personal reference text only inside the background page.
+  const getInfoText = () => state.infoFile?.text || null;
+
+  // Registers one cancellable fill and caches only its current field descriptions.
+  const beginFill = (fieldDescriptions) => {
+    state.activeFillController?.abort();
+    state.activeFillController = new AbortController();
+    state.cachedFieldDescriptions = fieldDescriptions.map((field) => ({ ...field }));
+    state.cachedFieldValues = [];
+    return state.activeFillController;
+  };
+
+  // Finishes only the matching request so a newer fill cannot be cleared by an older one.
+  const finishFill = (controller, fieldValues = null) => {
+    if (state.activeFillController !== controller) {
+      return;
+    }
+
+    state.cachedFieldValues = fieldValues ? { ...fieldValues } : [];
+    state.activeFillController = null;
+  };
+
   // Builds the exact export shape, including secrets, on explicit request.
   const getModelsForExport = () => ({
     activeModel: state.activeModelName,
@@ -193,8 +218,12 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   globalThis.AIFormFiller.sessionState = Object.freeze({
     addModel,
+    beginFill,
     clearAllData,
+    finishFill,
+    getActiveModel,
     getInfoForOptions,
+    getInfoText,
     getModel,
     getModelsForExport,
     getPublicSnapshot,
