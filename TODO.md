@@ -243,12 +243,12 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 ## 12. Dynamic and repeated sections
 
-- [ ] Re-scan the container on every Fill press so inputs added after the user clicks "+" or "Add" themselves are picked up.
-- [ ] Send the model the label and value of fields already filled on the form ("already on this form") so it does not reuse the same entry from the markdown (e.g. the same job) for a new section. Read this context from a wider scope than the selected container (enclosing form or page).
-- [ ] Exclude password fields, `cc-*` autocomplete fields and very long values from that context.
-- [ ] Update the system prompt: use a different entry for empty repeated sections and do not duplicate entries already on the form.
-- [ ] Because "replace" is ON by default, pressing **Fill form** again re-fills every field in scope, including sections already completed. The user avoids this by pressing **Fill new fields only**, or by selecting just the new section as the area. Mention this in the UI near the replace setting and in the README.
-- [ ] Detect repeated blocks (sibling elements with the same structure, names like `jobs[0]`, `jobs[1]`) and tag fields with section info (e.g. "Work experience, entry 2 of 3") so the model knows the order. This is heuristic; document its limits.
+- [x] Re-scan the container on every Fill press so inputs added after the user clicks "+" or "Add" themselves are picked up.
+- [x] Send the model the label and value of fields already filled on the form ("already on this form") so it does not reuse the same entry from the markdown (e.g. the same job) for a new section. Read this context from a wider scope than the selected container (enclosing form or page).
+- [x] Exclude password fields, `cc-*` autocomplete fields and very long values from that context.
+- [x] Update the system prompt: use a different entry for empty repeated sections and do not duplicate entries already on the form.
+- [x] Because "replace" is ON by default, pressing **Fill form** again re-fills every field in scope, including sections already completed. The user avoids this by pressing **Fill new fields only**, or by selecting just the new section as the area. Mention this in the UI near the replace setting and in the README.
+- [x] Detect repeated blocks (sibling elements with the same structure, names like `jobs[0]`, `jobs[1]`) and tag fields with section info (e.g. "Work experience, entry 2 of 3") so the model knows the order. This is heuristic; document its limits.
 - [ ] When more entries are needed than the form has, the extension may ask permission to click the page's "Add" button (section 13). It never clicks it on its own.
 
 ## 13. Button clicking requires permission every time
@@ -305,6 +305,6 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
 - [x] 5. Invisible-field safety gate.
 - [x] 6. Select matching improvements.
-- [ ] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).
+- [x] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).
 - [ ] 8. Button-click permission flow (scroll, prompt, Allow/Deny, submit-like blocking).
 - [ ] 9. Final pass: file sizes, comments, README, manual checklist.

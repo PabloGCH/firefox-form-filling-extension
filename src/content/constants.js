@@ -11,6 +11,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     FAR_OFFSCREEN_PX: 1000,
     FILLED_HIGHLIGHT: "0 0 0 3px #ffd54f",
     LABEL_MAX_LENGTH: 180,
+    MAX_CONTEXT_VALUE_LENGTH: 500,
     NEAR_ZERO_PX: 2,
     SAFETY_WARNING_TEXT:
       "Invisible fields were found. Nothing has been sent to the model. Cancel, or continue with visible fields only.",

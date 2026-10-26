@@ -43,6 +43,7 @@
         "src/content/picker.js",
         "src/content/field-labels.js",
         "src/content/field-collector.js",
+        "src/content/sections.js",
         "src/content/select-matcher.js",
         "src/content/select-handler.js",
         "src/content/submit-guard.js",

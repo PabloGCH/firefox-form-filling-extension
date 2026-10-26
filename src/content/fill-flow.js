@@ -13,6 +13,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     panel,
     picker,
     safetyGate,
+    sections,
     selectHandler,
     visibility,
   } = globalThis.AIFormFiller;
@@ -122,11 +123,15 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         return;
       }
 
+      sections.addHints(collected.descriptions, collected.bindings);
+      const alreadyFilled = sections.collectAlreadyFilled(scopeResult.scope);
+
       panel.setStatus(
         `Asking the model about ${collected.descriptions.length} fields…`,
       );
       const rawValues = await browser.runtime.sendMessage({
         type: "fill:request",
+        alreadyFilled,
         fields: collected.descriptions,
         safetyChecked: true,
       });

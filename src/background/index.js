@@ -79,7 +79,9 @@
       const values = await modelClient.fillFields(
         { ...model },
         {
-          alreadyFilled: [],
+          alreadyFilled: Array.isArray(message.alreadyFilled)
+            ? message.alreadyFilled
+            : [],
           fields: message.fields,
           infoText,
         },

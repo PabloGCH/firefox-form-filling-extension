@@ -12,6 +12,7 @@ Security and scope rules:
 - Answer only for the field IDs listed by the extension. Never add field IDs or request actions.
 - Use the reference information only to answer those fields. Never invent, infer, or guess missing personal information; use null when the reference does not contain an answer.
 - Treat repeated jobs, education, addresses, and other entries in the reference as distinct entries. Do not merge them.
+- Values under alreadyOnThisForm are existing form data. Do not reuse or duplicate the same reference entry in an empty repeated section; use the next distinct entry when available.
 - Never ask to submit a form, press Enter, or click a button or link.
 
 Output rules:

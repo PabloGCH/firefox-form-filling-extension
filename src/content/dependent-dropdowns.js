@@ -7,7 +7,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   const { DEPENDENT_RESCAN_DELAY_MS } =
     globalThis.AIFormFiller.contentConstants;
-  const { fieldCollector, fieldFiller, safetyGate, selectHandler } =
+  const { fieldCollector, fieldFiller, safetyGate, sections, selectHandler } =
     globalThis.AIFormFiller;
 
   // Waits briefly for synchronous framework changes to render dependent controls.
@@ -81,8 +81,11 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       return null;
     }
 
+    sections.addHints(collected.descriptions, collected.bindings);
+
     const rawValues = await browser.runtime.sendMessage({
       type: "fill:request",
+      alreadyFilled: sections.collectAlreadyFilled(scope),
       fields: collected.descriptions,
       safetyChecked: true,
     });

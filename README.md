@@ -4,11 +4,11 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 6 — Select matching improvements.
-- **Next task:** Task 7 — Dynamic and repeated sections.
-- **What works:** All Task 4 form flow remains available. Native selects now use strict-to-fuzzy unique matching, including accent/punctuation/article normalization and multi-select lists. Unmatched selects receive one focused model retry and a specific panel report. Long option lists are reduced only when reference-backed candidates exist. One delayed, safety-checked rescan fills only newly appeared dependent fields.
-- **Known limitations:** Candidate filtering and repeated-section detection are heuristic. Repeated-entry context, section hints, and fuller re-render/new-field behavior are Task 7. Custom non-native dropdowns remain skipped until Task 8 adds per-click permission. Live model behavior and the README manual checks are unverified.
-- **Verification:** Deterministic tests covered every matching tier, ambiguity rejection, multi-selects, focused retries, long-list candidate reduction/full fallback, and no unnecessary retry. A browser DOM exercise verified a newly added dependent select was the only field rescanned and filled. Syntax and forbidden API scans passed; `web-ext lint` had zero errors and Firefox 158 loaded the extension temporarily.
+- **Last completed task:** Task 7 — Dynamic and repeated sections.
+- **Next task:** Task 8 — Button-click permission flow.
+- **What works:** Every Fill re-collects the live scope. The model receives visible, length-limited existing values from the enclosing form or page, excluding password, payment-autocomplete, hidden, and oversized values. Indexed names and structurally repeated siblings receive entry-order hints, and the prompt forbids reusing entries already present. New-only controls and container re-finding remain supported.
+- **Known limitations:** Repeated-block detection is heuristic: indexed names are strongest, while sibling matching can miss heavily varied markup or use a generic heading. Context cannot infer whether an empty-looking custom widget has state. Custom dropdowns and add-section buttons remain untouched until Task 8. Live model behavior and the README manual checks are unverified.
+- **Verification:** Browser DOM checks produced correct `Jobs, entry 1/2 of 2` hints and unindexed sibling hints, while wider context included a completed job and excluded password, `cc-*`, hidden, empty, and 500+ character values. Syntax and forbidden API scans passed; extension lint and temporary Firefox loading are included in this task’s final checks.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
