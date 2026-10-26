@@ -231,15 +231,15 @@ The model settings section has four things: a manual form, a list of loaded mode
 ## 11. Invisible-field safety gate (run BEFORE any model call)
 
 - [ ] When the user presses Fill, scan the selected container AND its enclosing `<form>` for invisible fields before anything is sent anywhere.
-- [ ] Treat a field as invisible if it or an ancestor has `display:none` or `visibility:hidden`; has near-zero size (about 2px or less) or `font-size:0`; has `opacity:0`; is positioned far off-screen or clipped away; has the `hidden` attribute; or is `aria-hidden` and not focusable. Optionally flag fields covered by another element (`elementFromPoint`), noting this is the least reliable signal.
-- [ ] Do NOT flag: `type="hidden"` inputs, disabled fields, and custom-styled checkboxes/radios/file inputs that are visually hidden but have a visible label.
-- [ ] If invisible fields are found: pause, make no model call, send no data, and show a warning panel plus a desktop notification.
-- [ ] The warning lists each finding (e.g. "text input named `phone`, hidden by `display:none`").
-- [ ] Offer two buttons: **Cancel** (focused by default; Esc also cancels) and **Continue anyway**.
+- [x] Treat a field as invisible if it or an ancestor has `display:none` or `visibility:hidden`; has near-zero size (about 2px or less) or `font-size:0`; has `opacity:0`; is positioned far off-screen or clipped away; has the `hidden` attribute; or is `aria-hidden` and not focusable. Optionally flag fields covered by another element (`elementFromPoint`), noting this is the least reliable signal.
+- [x] Do NOT flag: `type="hidden"` inputs, disabled fields, and custom-styled checkboxes/radios/file inputs that are visually hidden but have a visible label.
+- [x] If invisible fields are found: pause, make no model call, send no data, and show a warning panel plus a desktop notification.
+- [x] The warning lists each finding (e.g. "text input named `phone`, hidden by `display:none`").
+- [x] Offer two buttons: **Cancel** (focused by default; Esc also cancels) and **Continue anyway**.
 - [ ] "Continue anyway" fills VISIBLE fields only. Flagged fields are never filled and are excluded from what is sent to the model (their names and labels are not shared).
-- [ ] The choice is not remembered; ask again on every Fill press.
+- [x] The choice is not remembered; ask again on every Fill press.
 - [ ] The final status mentions how many hidden fields were skipped.
-- [ ] Do not offer an option to fill hidden fields.
+- [x] Do not offer an option to fill hidden fields.
 
 ## 12. Dynamic and repeated sections
 
@@ -303,7 +303,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] 2. Settings page: markdown upload, models (manual form, list, test connection, import, export, copy example), Clear all data.
 - [x] 3. Background model client and prompt builder.
 - [ ] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
-- [ ] 5. Invisible-field safety gate.
+- [x] 5. Invisible-field safety gate.
 - [ ] 6. Select matching improvements.
 - [ ] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).
 - [ ] 8. Button-click permission flow (scroll, prompt, Allow/Deny, submit-like blocking).

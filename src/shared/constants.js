@@ -47,6 +47,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     EXPORT_WARNING:
       "This file includes API keys in plain text. Anyone with the file can read them. Store it securely. Export models now?",
     INFO_EDIT_DELAY_MS: 300,
+    HIDDEN_FIELDS_NOTIFICATION:
+      "Invisible fields found. Review the on-page warning before any data is sent.",
     LARGE_FILE_BYTES: 50 * 1024,
     LARGE_FILE_WARNING:
       "This file is over 50 KB. Its full contents are sent on every fill, and smaller local models may struggle with it.",

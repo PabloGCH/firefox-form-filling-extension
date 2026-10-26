@@ -3,7 +3,8 @@
 (() => {
   "use strict";
 
-  const { modelClient, sessionState, validators } = globalThis.AIFormFiller;
+  const { modelClient, notifications, sessionState, validators } =
+    globalThis.AIFormFiller;
 
   // Allows secret-bearing responses only to extension-owned pages, never tabs.
   const requireExtensionPage = (sender) => {
@@ -50,6 +51,8 @@
         return sessionState.getPublicSnapshot();
       case "session:clear":
         return sessionState.clearAllData();
+      case "notification:hidden-fields":
+        return notifications.showHiddenFieldsWarning();
       case "settings:get-info":
         requireExtensionPage(sender);
         return sessionState.getInfoForOptions();

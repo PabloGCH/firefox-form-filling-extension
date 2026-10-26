@@ -4,11 +4,11 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 3 — Background model client and prompt builder.
-- **Next task:** Task 4 — Content script picker, panel, field collector, filler, and core flow.
-- **What works:** Settings and popup features from Task 2 remain available. The background now builds injection-resistant prompts, calls OpenAI-compatible or Anthropic endpoints with no-store requests and three-minute timeouts, extracts fenced or surrounded JSON, and rejects unlisted field IDs and invalid value shapes.
-- **Known limitations:** Form filling and the on-page panel do not exist yet. The completed model-fill client is deliberately not exposed through message routing until the content-side invisible-field safety gate can authorize requests. Real file-picker, clipboard, download, and live model-server behavior still need the README manual checks.
-- **Verification:** Prompt/data separation, no-invention instructions, provider request bodies and headers, JSON extraction, output allow-list validation, syntax, and forbidden API scans passed. `web-ext lint` reported zero errors plus the known future add-on-ID/data-declaration warnings, and Firefox 158 loaded the extension as a temporary add-on in a clean headless profile. No live model endpoint was available.
+- **Last completed task:** Task 5 — Invisible-field safety gate (completed before Task 4 by user decision).
+- **Next task:** Task 4 — Content script picker, full panel, field collector, filler, and core flow.
+- **What works:** Settings, popup, and background model infrastructure remain available. The injected safety gate scans a scope plus its enclosing form, identifies required concealment signals, exempts disabled/native-hidden/custom-labeled controls, lists findings in a closed-shadow warning, sends a data-free desktop notification, defaults to Cancel, supports Escape, and returns an exclusion set only after **Continue anyway**.
+- **Known limitations:** Task 4 does not yet provide a Fill button, so invoking the gate on every Fill and reporting its skipped count in the final fill summary remain unticked integration requirements. Model filling is still not exposed through message routing. Real file-picker, clipboard, download, notification, and live model behavior still need manual checks.
+- **Verification:** A real browser DOM exercise detected seven distinct hidden-field cases while excluding visible, disabled, `type=hidden`, and custom-labeled controls; it also found a hidden sibling in the enclosing form. Cancel, Escape, Continue, exclusion counts, and notification content checks passed. Syntax and forbidden API scans passed; `web-ext lint` reported zero errors plus the known future warnings, and Firefox 158 loaded the content scripts as a temporary add-on.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
@@ -16,6 +16,8 @@ A Firefox desktop extension that will use a cloud or local language model to fil
   - Approved clear warning: “Clear all in-memory data? This cancels any fill in progress. Files you previously exported to disk will not be deleted.”
   - Approved the 50 KB markdown warning now used in settings.
   - Cross-task requirements may remain unticked until their later component exists; Task 2 is complete in its settings/popup scope, while panel reset stays deferred to Task 4.
+  - Task 5 was moved before Task 4 at the user's direction so its pre-call check exists before the first form-data model call; Task 4 will integrate its remaining trigger and summary requirements.
+  - Approved safety warning and notification wording is used by the hidden-field gate.
 - **Open questions:** None.
 
 ## Privacy and session lifetime
@@ -95,7 +97,7 @@ Model configuration import and export will use this shape:
 - `src/background/prompt-builder.js`: fixed instructions plus serialized reference and field data.
 - `src/background/model-client.js`: provider requests, timeout, cancellation, and response handling.
 - `src/background/model-response.js`: JSON extraction and field-ID/value-shape validation.
-- `src/content/`: planned ordered content scripts sharing the `AIFormFiller` namespace.
+- `src/content/`: ordered content scripts for isolated panel UI and hidden-control detection; picker and filling modules are next.
 - `src/options/`: settings page modules and styles.
 - `src/popup/`: toolbar popup status and session controls.
 - `src/shared/`: constants and model validation shared by extension pages and background scripts.
