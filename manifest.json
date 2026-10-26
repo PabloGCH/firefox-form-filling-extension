@@ -14,6 +14,10 @@
       "src/shared/constants.js",
       "src/shared/validators.js",
       "src/background/session-state.js",
+      "src/background/prompt-constants.js",
+      "src/background/prompt-builder.js",
+      "src/background/model-response.js",
+      "src/background/model-constants.js",
       "src/background/model-client.js",
       "src/background/index.js"
     ],

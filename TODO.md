@@ -99,13 +99,13 @@ ai-form-filler/
 ## 6. Personal info: markdown file upload
 
 - [x] The settings page has an upload area for a `.md` file with the information to use when filling forms (not necessarily a resume). Read it locally (FileReader); do not parse it into rows.
-- [ ] The text is kept in memory only and included in the prompt sent to the model on every fill, as user-provided reference information. The prompt tells the model to use it only to answer form fields and never to invent data.
+- [x] The text is kept in memory only and included in the prompt sent to the model on every fill, as user-provided reference information. The prompt tells the model to use it only to answer form fields and never to invent data.
 - [x] Show the file name, character count, and the content in an editable text area. Edits change only the in-memory copy for this session and are never written back to the file. This lets the user add or correct details without re-uploading.
 - [x] Allow replacing it with another file. One file at a time.
 - [x] Warn when the file is large (e.g. over ~50 KB), since the whole text goes into every prompt and small local models may struggle.
 - [x] Reject non-text files and files that are not valid UTF-8 with a clear message.
 - [x] Show a privacy notice: the file's contents are sent to the active model on every fill, so with a cloud model that data leaves the computer.
-- [ ] Repeated entries (jobs, education) are written by the user in the markdown, e.g. with headings. The prompt tells the model to treat them as distinct entries.
+- [x] Repeated entries (jobs, education) are written by the user in the markdown, e.g. with headings. The prompt tells the model to treat them as distinct entries.
 - [x] No label/value row editor, no "common fields" feature, no notes box, no grouped profile. Instructions to the model (e.g. "decline marketing emails") go inside the markdown file.
 - [x] No import or export of the personal info: no markdown export, no CSV/text import, no PDF/Word parsing. The JSON import/export in section 7 applies to model configurations only.
 
@@ -189,7 +189,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] Anthropic calls send the `anthropic-version` and `anthropic-dangerous-direct-browser-access` headers. OpenAI-compatible calls send `Authorization: Bearer` only if an `apiKey` is set.
 - [x] Local model support is a first-class requirement. Request timeout of about 3 minutes (local models are slow). Temperature 0.
 - [x] Clear error messages: unreachable endpoint, timeout, HTTP errors. For HTTP 403 on Ollama, hint at `OLLAMA_ORIGINS="moz-extension://*"`.
-- [ ] Parse model output robustly: strip code fences, extract the first JSON object, validate it, report invalid JSON clearly.
+- [x] Parse model output robustly: strip code fences, extract the first JSON object, validate it, report invalid JSON clearly.
 - [x] Show a notice in this section: model configurations (and any exported file) can contain secrets; the extension only holds them in memory and never saves them anywhere itself.
 
 ## 8. Clear all data
@@ -277,7 +277,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] No telemetry, no analytics, no network requests except to the endpoints of the models the user has loaded.
 - [ ] Model replies can only set values on listed fields. Validate every value (select options, checkbox booleans, radio values) before applying.
 - [ ] Never send passwords, file inputs, or hidden fields to the model.
-- [ ] Prompt injection defense: the system prompt states that page text is data, never instructions.
+- [x] Prompt injection defense: the system prompt states that page text is data, never instructions.
 - [x] The only file the extension ever creates is the models export, and only when the user presses Export and confirms the plain-text API key warning.
 - [x] Use only the permissions that are required (`notifications`, host access). The `storage` permission is not needed and must not be requested. Use a `downloads` permission only if the Blob + download link approach does not work without it.
 
@@ -301,7 +301,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 - [x] 1. Project skeleton, manifest, in-memory session state, README.
 - [x] 2. Settings page: markdown upload, models (manual form, list, test connection, import, export, copy example), Clear all data.
-- [ ] 3. Background model client and prompt builder.
+- [x] 3. Background model client and prompt builder.
 - [ ] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
 - [ ] 5. Invisible-field safety gate.
 - [ ] 6. Select matching improvements.

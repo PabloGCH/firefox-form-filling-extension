@@ -4,11 +4,11 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 2 — Settings page: markdown upload, model management, import/export, copy example, and Clear all data.
-- **Next task:** Task 3 — Background model client and prompt builder.
-- **What works:** The settings page loads and edits one UTF-8 markdown file in memory; manually adds, edits, removes, selects, and tests models; imports, validates, exports, and copies model JSON; and clears all data. The popup shows empty/loaded status, switches the active model, opens settings, and clears data. Secrets remain in the background except during an explicit settings export.
-- **Known limitations:** Form filling and the on-page panel do not exist yet. Resetting those future UI surfaces after **Clear all data** is deferred to Task 4 in `src/content/`; the underlying session clear already removes their future state. Real file-picker, clipboard, download, and live model-server behavior still need the README manual checks.
-- **Verification:** All JavaScript passed Node syntax checks; state, validation, secret-boundary, provider-header, error, clear, and export/import round-trip checks passed. The settings UI was exercised in a browser with a mocked message boundary, including manual model addition and key masking. `web-ext lint` reported zero errors plus the known future add-on-ID/data-declaration warnings, and Firefox 158 loaded the extension as a temporary add-on in a clean headless profile. No live Ollama, Anthropic, or cloud endpoint was available.
+- **Last completed task:** Task 3 — Background model client and prompt builder.
+- **Next task:** Task 4 — Content script picker, panel, field collector, filler, and core flow.
+- **What works:** Settings and popup features from Task 2 remain available. The background now builds injection-resistant prompts, calls OpenAI-compatible or Anthropic endpoints with no-store requests and three-minute timeouts, extracts fenced or surrounded JSON, and rejects unlisted field IDs and invalid value shapes.
+- **Known limitations:** Form filling and the on-page panel do not exist yet. The completed model-fill client is deliberately not exposed through message routing until the content-side invisible-field safety gate can authorize requests. Real file-picker, clipboard, download, and live model-server behavior still need the README manual checks.
+- **Verification:** Prompt/data separation, no-invention instructions, provider request bodies and headers, JSON extraction, output allow-list validation, syntax, and forbidden API scans passed. `web-ext lint` reported zero errors plus the known future add-on-ID/data-declaration warnings, and Firefox 158 loaded the extension as a temporary add-on in a clean headless profile. No live model endpoint was available.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
@@ -92,10 +92,13 @@ Model configuration import and export will use this shape:
 - `manifest.json`: Firefox 119+ Manifest V2 declaration and minimum permissions.
 - `src/background/session-state.js`: the only owner of session user data.
 - `src/background/index.js`: background message routing.
+- `src/background/prompt-builder.js`: fixed instructions plus serialized reference and field data.
+- `src/background/model-client.js`: provider requests, timeout, cancellation, and response handling.
+- `src/background/model-response.js`: JSON extraction and field-ID/value-shape validation.
 - `src/content/`: planned ordered content scripts sharing the `AIFormFiller` namespace.
-- `src/options/`: planned settings page.
-- `src/popup/`: planned toolbar popup.
-- `src/shared/`: planned constants and validation shared by extension pages.
+- `src/options/`: settings page modules and styles.
+- `src/popup/`: toolbar popup status and session controls.
+- `src/shared/`: constants and model validation shared by extension pages and background scripts.
 
 ## Manual checklist
 
