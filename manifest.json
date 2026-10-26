@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "AI Form Filler",
+  "version": "0.1.0",
+  "description": "Fill web forms with session-only personal information and a user-configured model.",
+  "browser_specific_settings": {
+    "gecko": {
+      "strict_min_version": "119.0"
+    }
+  },
+  "permissions": ["<all_urls>", "notifications"],
+  "background": {
+    "scripts": [
+      "src/background/session-state.js",
+      "src/background/index.js"
+    ],
+    "persistent": true
+  }
+}

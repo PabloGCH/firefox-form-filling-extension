@@ -73,7 +73,7 @@ If you made an assumption anyway because there was truly no way to ask, list it 
 
 ## 4. Verification and honesty
 
-- Before finishing a task, run the linter and formatter, check that every file loads without syntax errors, load the extension (for example with `web-ext lint` or `web-ext run` if available) and exercise the new behavior as far as you can.
+- Before finishing a task, check that every file loads without syntax errors, validate or load the extension (for example with `web-ext lint` or `web-ext run` if available) and exercise the new behavior as far as you can.
 - Do not create test pages or a `tests/` folder (the user does not want them). Verify using real pages where possible, and add the relevant items to the README manual checklist for the user to run.
 - Be honest about what you could not verify, for example behavior on a specific site, or a model you cannot reach. Say what is untested instead of claiming it works.
 - If you find a bug in earlier work while doing a later task, fix it and note it in the README. If the fix changes behavior from `TODO.md`, ask first.
@@ -86,7 +86,7 @@ If you made an assumption anyway because there was truly no way to ask, list it 
 - Short files (aim for under ~200 lines). When a file grows beyond that, split it into new files with a single responsibility.
 - Files organized in folders by area, following the structure in `TODO.md`. Create new folders when needed instead of piling files into one directory.
 - Constants (skip-lists, thresholds, the example JSON text) in dedicated constants files, not inline.
-- `const`/`let` only, and consistent formatting with the Prettier and ESLint configs.
+- `const`/`let` only, never `var`.
 - Explicit error handling with readable user-facing messages. Never fail silently.
 - Never log or display API keys or the contents of the user's info file, not even in errors or debug output.
 
