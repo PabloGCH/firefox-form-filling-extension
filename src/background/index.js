@@ -93,6 +93,39 @@
     }
   };
 
+  // Runs one safety-authorized focused retry for an unmatched select.
+  const retrySelect = async (message, sender) => {
+    if (!sender.tab || message.safetyChecked !== true || !message.field) {
+      throw new Error("The form safety check did not authorize this retry.");
+    }
+
+    const infoText = sessionState.getInfoText();
+    const model = sessionState.getActiveModel();
+
+    if (!infoText || !model) {
+      throw new Error("The model setup is no longer available.");
+    }
+
+    const controller = sessionState.beginFill([message.field]);
+
+    try {
+      const value = await modelClient.retrySelect(
+        { ...model },
+        {
+          field: message.field,
+          infoText,
+          previousAnswer: message.previousAnswer,
+        },
+        controller.signal,
+      );
+      sessionState.finishFill(controller, { [message.field.id]: value });
+      return value;
+    } catch (error) {
+      sessionState.finishFill(controller);
+      throw error;
+    }
+  };
+
   // Handles session and settings messages from extension pages.
   const handleMessage = async (message, sender) => {
     if (!message || typeof message.type !== "string") {
@@ -118,6 +151,8 @@
         return notifications.showFillResult(message.outcome, message.category);
       case "fill:request":
         return fillFields(message, sender);
+      case "fill:retry-select":
+        return retrySelect(message, sender);
       case "settings:get-info":
         requireExtensionPage(sender);
         return sessionState.getInfoForOptions();

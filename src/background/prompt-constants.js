@@ -22,5 +22,9 @@ Output rules:
 - Use YYYY-MM-DD for date inputs and respect stated maximum lengths.
 - Keep distinct repeated entries aligned with any section information supplied by the extension.`;
 
-  globalThis.AIFormFiller.promptConstants = Object.freeze({ SYSTEM_PROMPT });
+  globalThis.AIFormFiller.promptConstants = Object.freeze({
+    LONG_OPTION_THRESHOLD: 100,
+    MAX_PLAUSIBLE_OPTIONS: 50,
+    SYSTEM_PROMPT,
+  });
 })();

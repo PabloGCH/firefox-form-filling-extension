@@ -4,11 +4,11 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 4 — Content script picker, panel, collector, filler, and core end-to-end flow (completed after prerequisite Task 5).
-- **Next task:** Task 6 — Select matching improvements.
-- **What works:** The popup and closed-shadow page panel start normal or new-fields-only fills and area selection. Selection supports hover/click/Escape/parent navigation, persists visibly, and re-finds replaced containers. Every fill checks readiness and hidden fields, sends only visible listed descriptions to the background model client, applies validated text/date/checkbox/radio/exact-select values, blocks submission, highlights changes, and reports a detailed panel summary plus one brief final notification.
-- **Known limitations:** Native selects currently require an exact option value; advanced matching, second-pass correction, multi-select refinement, and dependent-dropdown rescans are Task 6. Repeated-section context and robust re-render/new-field handling are Task 7. Custom dropdown and add-section clicks remain disabled until Task 8. Live model behavior and the README manual checks are unverified.
-- **Verification:** Browser exercises covered picker navigation/click blocking/style restoration, labels and radio grouping, password/file/button exclusion, replace-off and new-fields-only behavior, exact selects, text/date/checkbox/radio filling, unknown-value preservation, submit blocking, highlighting, the complete safety-to-model-to-fill pipeline, brief final outcomes, and clear-during-fill cancellation. Background secret isolation and safety authorization passed; `web-ext lint` had zero errors and Firefox 158 loaded the extension temporarily.
+- **Last completed task:** Task 6 — Select matching improvements.
+- **Next task:** Task 7 — Dynamic and repeated sections.
+- **What works:** All Task 4 form flow remains available. Native selects now use strict-to-fuzzy unique matching, including accent/punctuation/article normalization and multi-select lists. Unmatched selects receive one focused model retry and a specific panel report. Long option lists are reduced only when reference-backed candidates exist. One delayed, safety-checked rescan fills only newly appeared dependent fields.
+- **Known limitations:** Candidate filtering and repeated-section detection are heuristic. Repeated-entry context, section hints, and fuller re-render/new-field behavior are Task 7. Custom non-native dropdowns remain skipped until Task 8 adds per-click permission. Live model behavior and the README manual checks are unverified.
+- **Verification:** Deterministic tests covered every matching tier, ambiguity rejection, multi-selects, focused retries, long-list candidate reduction/full fallback, and no unnecessary retry. A browser DOM exercise verified a newly added dependent select was the only field rescanned and filled. Syntax and forbidden API scans passed; `web-ext lint` had zero errors and Firefox 158 loaded the extension temporarily.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
@@ -56,7 +56,7 @@ Temporary add-ons are removed when Firefox closes. Use the toolbar popup to open
 4. If invisible fields are reported, review the list. **Cancel** sends nothing; **Continue anyway** excludes every reported field from both the request and filling.
 5. Review highlighted values and submit the form yourself. The extension never submits it.
 
-Current native-select matching accepts exact option values only. More tolerant matching arrives in Task 6.
+Native selects use tiered unique matching and one model retry. Custom dropdowns that require opening a page control remain untouched until the permission flow is implemented.
 
 ## Personal information markdown
 

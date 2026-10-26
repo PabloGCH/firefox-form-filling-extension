@@ -167,8 +167,26 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     );
   };
 
+  // Runs the required focused second pass for one unmatched native select.
+  const retrySelect = async (model, promptData, externalSignal) => {
+    const messages =
+      globalThis.AIFormFiller.promptBuilder.buildSelectRetryMessages(promptData);
+    const response = await sendRequest(
+      model,
+      buildBody(model, messages, FILL_MAX_TOKENS),
+      externalSignal,
+    );
+    const responseText = await readResponseText(model, response);
+    const values = globalThis.AIFormFiller.modelResponse.parseFieldResponse(
+      responseText,
+      [promptData.field.id],
+    );
+    return values[promptData.field.id] ?? null;
+  };
+
   globalThis.AIFormFiller.modelClient = Object.freeze({
     fillFields,
+    retrySelect,
     testConnection,
   });
 })();

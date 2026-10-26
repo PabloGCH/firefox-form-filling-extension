@@ -5,47 +5,19 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 (() => {
   "use strict";
 
-  const { fieldCollector, fieldFiller, panel, picker, safetyGate, visibility } =
-    globalThis.AIFormFiller;
+  const {
+    dependentDropdowns,
+    fieldCollector,
+    fieldFiller,
+    fillSummary: summaryTools,
+    panel,
+    picker,
+    safetyGate,
+    selectHandler,
+    visibility,
+  } = globalThis.AIFormFiller;
   let fillInProgress = false;
   let sessionVersion = 0;
-
-  // Sends one approved final notification and reports notification failure in-panel.
-  const notifyResult = async (outcome, category) => {
-    try {
-      await browser.runtime.sendMessage({
-        type: "notification:fill-result",
-        outcome,
-        category,
-      });
-    } catch {
-      panel.setStatus("The fill finished, but its desktop notification could not be shown.");
-    }
-  };
-
-  // Reduces detailed errors to an approved general notification category.
-  const getFailureCategory = (message) => {
-    if (/no personal information|no active model/i.test(message)) {
-      return "setup is incomplete";
-    }
-
-    if (/reach|timed out|HTTP|canceled/i.test(message)) {
-      return "the model was unavailable";
-    }
-
-    if (/invalid JSON|model response|response text/i.test(message)) {
-      return "the model response was invalid";
-    }
-
-    return "the fill could not be completed";
-  };
-
-  // Formats all required counts for the on-page result.
-  const formatSummary = (summary) =>
-    `Done: filled ${summary.filled}, left ${summary.leftBlank} blank, ` +
-    `skipped ${summary.skippedHidden} hidden fields, ` +
-    `${summary.unmatchedSelects} unmatched selects, and ` +
-    `${summary.deniedClicks} denied clicks. Review the form, then submit it yourself.`;
 
   // Checks prerequisites without receiving markdown text or API keys.
   const getReadySummary = async () => {
@@ -146,14 +118,14 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
       if (collected.descriptions.length === 0) {
         panel.setStatus("No fillable inputs were found in this area.");
-        await notifyResult("failure", "no inputs were found");
+        await summaryTools.notify("failure", "no inputs were found");
         return;
       }
 
       panel.setStatus(
         `Asking the model about ${collected.descriptions.length} fields…`,
       );
-      const values = await browser.runtime.sendMessage({
+      const rawValues = await browser.runtime.sendMessage({
         type: "fill:request",
         fields: collected.descriptions,
         safetyChecked: true,
@@ -163,24 +135,54 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         return;
       }
 
-      const fillSummary = fieldFiller.fill(
+      const values = await selectHandler.resolveValues(
+        collected.bindings,
+        rawValues,
+      );
+      const initialElements = summaryTools.getBindingElements(collected.bindings);
+      let fillSummary = fieldFiller.fill(
         collected.bindings,
         values,
         safetyResult.skippedHidden,
       );
-      panel.setStatus(formatSummary(fillSummary));
+      let dependentFailed = false;
+
+      try {
+        const dependentSummary = await dependentDropdowns.fillNewFields(
+          scopeResult.scope,
+          initialElements,
+          safetyResult,
+          replaceExisting,
+        );
+
+        if (dependentSummary) {
+          fillSummary = summaryTools.merge(fillSummary, dependentSummary);
+        }
+      } catch {
+        dependentFailed = true;
+      }
+
+      if (fillVersion !== sessionVersion) {
+        return;
+      }
+
+      panel.setStatus(summaryTools.format(fillSummary));
       const partial =
+        dependentFailed ||
         fillSummary.leftBlank > 0 ||
         fillSummary.skippedHidden > 0 ||
         fillSummary.unmatchedSelects > 0;
-      await notifyResult(partial ? "partial" : "success");
+      await summaryTools.notify(partial ? "partial" : "success");
     } catch (error) {
       if (fillVersion !== sessionVersion) {
         return;
       }
 
       panel.setStatus(error.message || "The fill could not be completed.");
-      await notifyResult("failure", getFailureCategory(error.message || ""));
+      await summaryTools.notify(
+        "failure",
+        summaryTools.getFailureCategory(error.message || ""),
+      );
     } finally {
       fillInProgress = false;
     }

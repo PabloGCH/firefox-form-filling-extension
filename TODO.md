@@ -220,12 +220,12 @@ The model settings section has four things: a manual form, a list of loaded mode
 ## 10. Select and dropdown handling
 
 - [x] Send native `select` options (value + label) to the model; the model answers with an option value.
-- [ ] Tiered matching of the model's answer: exact value, exact label, normalized match (case, accents, punctuation, leading "the" ignored), then a unique starts-with or contains match. If a tier finds multiple candidates, pick none.
-- [ ] If no match, run one second pass asking the model about only that field and its options (closest option or null).
-- [ ] For very long option lists, send only plausible candidates matching the user's data, falling back to the full list if none.
-- [ ] Support multi-selects when the model returns a list of values.
-- [ ] Dependent dropdowns: after filling, re-scan once for newly appeared fields and fill only those (still passing the safety gate).
-- [ ] Report selects that could not be matched (e.g. "left 'Country' blank: no option matched 'Untied States'").
+- [x] Tiered matching of the model's answer: exact value, exact label, normalized match (case, accents, punctuation, leading "the" ignored), then a unique starts-with or contains match. If a tier finds multiple candidates, pick none.
+- [x] If no match, run one second pass asking the model about only that field and its options (closest option or null).
+- [x] For very long option lists, send only plausible candidates matching the user's data, falling back to the full list if none.
+- [x] Support multi-selects when the model returns a list of values.
+- [x] Dependent dropdowns: after filling, re-scan once for newly appeared fields and fill only those (still passing the safety gate).
+- [x] Report selects that could not be matched (e.g. "left 'Country' blank: no option matched 'Untied States'").
 - [ ] Custom (non-native) dropdowns that need a click to open go through the permission flow in section 13, and are skipped if the user denies.
 
 ## 11. Invisible-field safety gate (run BEFORE any model call)
@@ -304,7 +304,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] 3. Background model client and prompt builder.
 - [x] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
 - [x] 5. Invisible-field safety gate.
-- [ ] 6. Select matching improvements.
+- [x] 6. Select matching improvements.
 - [ ] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).
 - [ ] 8. Button-click permission flow (scroll, prompt, Allow/Deny, submit-like blocking).
 - [ ] 9. Final pass: file sizes, comments, README, manual checklist.

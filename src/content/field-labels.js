@@ -11,10 +11,19 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   const clean = (value) =>
     value?.replace(/\s+/g, " ").trim().slice(0, LABEL_MAX_LENGTH) || "";
 
+  // Removes nested controls so select option text does not pollute its label.
+  const getLabelText = (label) => {
+    const copy = label.cloneNode(true);
+    copy.querySelectorAll("input, select, textarea, button").forEach((control) => {
+      control.remove();
+    });
+    return copy.textContent;
+  };
+
   // Reads explicit labels before a conservative nearby-text fallback.
   const get = (field) => {
     const labelText = clean(
-      [...field.labels].map((label) => label.textContent).join(" "),
+      [...field.labels].map(getLabelText).join(" "),
     );
 
     if (labelText) {

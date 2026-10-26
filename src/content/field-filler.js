@@ -5,7 +5,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 (() => {
   "use strict";
 
-  const { FILLED_HIGHLIGHT } = globalThis.AIFormFiller.contentConstants;
+  const { FILLED_HIGHLIGHT, STATUS_VALUE_MAX_LENGTH } =
+    globalThis.AIFormFiller.contentConstants;
   const highlightedFields = new WeakMap();
 
   // Uses the native setter so controlled frameworks observe the new value.
@@ -152,6 +153,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       filled: 0,
       leftBlank: 0,
       skippedHidden,
+      unmatchedSelectDetails: [],
       unmatchedSelects: 0,
     };
     globalThis.AIFormFiller.submitGuard.start();
@@ -171,6 +173,11 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
         if (!didFill) {
           summary.unmatchedSelects += 1;
+          const answer = Array.isArray(value) ? value.join(", ") : String(value);
+          summary.unmatchedSelectDetails.push(
+            `left “${binding.description.label || binding.description.name}” blank: ` +
+              `no option matched “${answer.slice(0, STATUS_VALUE_MAX_LENGTH)}”`,
+          );
         }
       } else if (binding.kind === "checkbox") {
         didFill = fillCheckbox(binding, value);
