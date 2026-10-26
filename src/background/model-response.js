@@ -1,9 +1,12 @@
-/* Extracts and validates field values from untrusted model response text. */
+/* Extracts and allow-list validates fields and click requests from model text. */
 
 globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
 (() => {
   "use strict";
+
+  const { MAX_CLICK_REASON_LENGTH, MAX_CLICK_REQUESTS } =
+    globalThis.AIFormFiller.promptConstants;
 
   // Removes Markdown fence markers that models sometimes add around JSON.
   const stripCodeFences = (text) =>
@@ -66,14 +69,10 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     );
   };
 
-  // Parses one object and rejects fields the extension did not enumerate.
-  const parseFieldResponse = (responseText, allowedFieldIds) => {
+  // Parses the first model JSON object without trusting surrounding prose.
+  const parseResponseObject = (responseText) => {
     if (typeof responseText !== "string") {
       throw new Error("The model returned an invalid response instead of text.");
-    }
-
-    if (!Array.isArray(allowedFieldIds)) {
-      throw new Error("The extension field list is invalid.");
     }
 
     let parsed;
@@ -86,6 +85,15 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       }
 
       throw new Error("The model returned invalid JSON.");
+    }
+
+    return parsed;
+  };
+
+  // Validates scalar field values against extension-generated IDs.
+  const parseFields = (parsed, allowedFieldIds) => {
+    if (!Array.isArray(allowedFieldIds)) {
+      throw new Error("The extension field list is invalid.");
     }
 
     if (!parsed.fields || typeof parsed.fields !== "object" || Array.isArray(parsed.fields)) {
@@ -110,5 +118,65 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     return values;
   };
 
-  globalThis.AIFormFiller.modelResponse = Object.freeze({ parseFieldResponse });
+  // Accepts only bounded, unique requests for click IDs listed by the extension.
+  const parseClickRequests = (parsed, allowedClickIds) => {
+    if (parsed.clickRequests === undefined) {
+      return [];
+    }
+
+    if (!Array.isArray(parsed.clickRequests)) {
+      throw new Error('The model response field “clickRequests” must be an array.');
+    }
+
+    if (parsed.clickRequests.length > MAX_CLICK_REQUESTS) {
+      throw new Error("The model requested too many button clicks.");
+    }
+
+    const allowedIds = new Set(allowedClickIds);
+    const seenIds = new Set();
+    return parsed.clickRequests.map((request) => {
+      if (
+        !request ||
+        typeof request !== "object" ||
+        Array.isArray(request) ||
+        typeof request.candidateId !== "string" ||
+        !allowedIds.has(request.candidateId) ||
+        seenIds.has(request.candidateId)
+      ) {
+        throw new Error("The model requested an invalid or unlisted button click.");
+      }
+
+      if (request.reason !== undefined && typeof request.reason !== "string") {
+        throw new Error("The model returned an invalid button-click reason.");
+      }
+
+      seenIds.add(request.candidateId);
+      return {
+        candidateId: request.candidateId,
+        reason: String(request.reason || "").trim().slice(0, MAX_CLICK_REASON_LENGTH),
+      };
+    });
+  };
+
+  // Parses a values-only response for focused native-select retries.
+  const parseFieldResponse = (responseText, allowedFieldIds) =>
+    parseFields(parseResponseObject(responseText), allowedFieldIds);
+
+  // Parses a normal fill response with separately allow-listed optional clicks.
+  const parseFillResponse = (responseText, allowedFieldIds, allowedClickIds) => {
+    if (!Array.isArray(allowedClickIds)) {
+      throw new Error("The extension click-candidate list is invalid.");
+    }
+
+    const parsed = parseResponseObject(responseText);
+    return {
+      values: parseFields(parsed, allowedFieldIds),
+      clickRequests: parseClickRequests(parsed, allowedClickIds),
+    };
+  };
+
+  globalThis.AIFormFiller.modelResponse = Object.freeze({
+    parseFieldResponse,
+    parseFillResponse,
+  });
 })();

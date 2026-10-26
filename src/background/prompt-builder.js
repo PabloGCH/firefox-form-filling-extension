@@ -64,6 +64,16 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     ) {
       throw new Error("The existing form context is invalid.");
     }
+
+    if (
+      promptData.clickCandidates !== undefined &&
+      (!Array.isArray(promptData.clickCandidates) ||
+        promptData.clickCandidates.some(
+          (candidate) => !candidate || typeof candidate.id !== "string" || !candidate.id,
+        ))
+    ) {
+      throw new Error("The click-candidate list is invalid.");
+    }
   };
 
   // Serializes page-derived text as data under fixed system instructions.
@@ -75,6 +85,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         limitOptions(field, promptData.infoText),
       ),
       alreadyOnThisForm: promptData.alreadyFilled || [],
+      clickCandidates: promptData.clickCandidates || [],
     };
 
     return [

@@ -6,6 +6,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   "use strict";
 
   const {
+    buttonCandidates,
+    clickFlow,
     dependentDropdowns,
     fieldCollector,
     fieldFiller,
@@ -125,13 +127,15 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
       sections.addHints(collected.descriptions, collected.bindings);
       const alreadyFilled = sections.collectAlreadyFilled(scopeResult.scope);
+      const candidates = buttonCandidates.collect(scopeResult.scope);
 
       panel.setStatus(
         `Asking the model about ${collected.descriptions.length} fields…`,
       );
-      const rawValues = await browser.runtime.sendMessage({
+      const response = await browser.runtime.sendMessage({
         type: "fill:request",
         alreadyFilled,
+        clickCandidates: candidates.descriptions,
         fields: collected.descriptions,
         safetyChecked: true,
       });
@@ -142,7 +146,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
       const values = await selectHandler.resolveValues(
         collected.bindings,
-        rawValues,
+        response.values,
       );
       const initialElements = summaryTools.getBindingElements(collected.bindings);
       let fillSummary = fieldFiller.fill(
@@ -151,6 +155,15 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         safetyResult.skippedHidden,
       );
       let dependentFailed = false;
+      const clickState = clickFlow.createState(
+        fillSummary,
+        initialElements,
+        safetyResult,
+        {
+          bindings: candidates.bindings,
+          requests: response.clickRequests,
+        },
+      );
 
       try {
         const dependentSummary = await dependentDropdowns.fillNewFields(
@@ -161,8 +174,16 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         );
 
         if (dependentSummary) {
-          fillSummary = summaryTools.merge(fillSummary, dependentSummary);
+          clickFlow.addDependentResult(clickState, dependentSummary);
         }
+
+        await clickFlow.process(
+          scopeResult.scope,
+          replaceExisting,
+          clickState,
+          () => fillVersion !== sessionVersion,
+        );
+        fillSummary = clickState.summary;
       } catch {
         dependentFailed = true;
       }
@@ -174,6 +195,9 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       panel.setStatus(summaryTools.format(fillSummary));
       const partial =
         dependentFailed ||
+        clickState.blocked ||
+        clickState.limitReached ||
+        fillSummary.deniedClicks > 0 ||
         fillSummary.leftBlank > 0 ||
         fillSummary.skippedHidden > 0 ||
         fillSummary.unmatchedSelects > 0;

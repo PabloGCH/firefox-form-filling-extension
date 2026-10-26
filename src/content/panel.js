@@ -5,7 +5,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 (() => {
   "use strict";
 
-  const { SAFETY_WARNING_TEXT } = globalThis.AIFormFiller.contentConstants;
+  const { CLICK_REASON_MAX_LENGTH, SAFETY_WARNING_TEXT } =
+    globalThis.AIFormFiller.contentConstants;
   let panelHost = null;
   let panelRoot = null;
   let statusElement = null;
@@ -177,6 +178,75 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     });
   };
 
+  // Shows one isolated Allow/Deny decision and accepts Allow only from real input.
+  const showClickPermission = (details) => {
+    ensureRoot();
+    const section = document.createElement("section");
+    const heading = document.createElement("h2");
+    const message = document.createElement("p");
+    const metadata = document.createElement("p");
+    const actions = document.createElement("div");
+    const denyButton = createButton("Deny", () => finish(false));
+    const allowButton = createButton("Allow", (event) => {
+      if (event.isTrusted) {
+        finish(true);
+      }
+    }, "primary");
+    heading.textContent = "Permission to click";
+    message.textContent = `Click “${details.text}” to ${details.extensionReason}.`;
+    metadata.textContent = `Control: ${details.controlType}; location: ${details.location}.`;
+    actions.className = "actions";
+    actions.append(denyButton, allowButton);
+    section.className = "panel warning";
+    section.setAttribute("role", "alertdialog");
+    section.setAttribute("aria-modal", "true");
+    section.append(heading, message, metadata);
+
+    if (details.modelReason) {
+      const modelReason = document.createElement("p");
+      modelReason.textContent = `Model-provided reason: ${String(details.modelReason).slice(
+        0,
+        CLICK_REASON_MAX_LENGTH,
+      )}`;
+      section.append(modelReason);
+    }
+
+    if (details.riskyUntypedButton) {
+      const warning = document.createElement("p");
+      warning.textContent =
+        "This button may submit by default. Submission will be blocked during and after the click.";
+      section.append(warning);
+    }
+
+    section.append(actions);
+    panelRoot.replaceChildren(createStyles(), section);
+    let resolvePrompt;
+
+    // Resolves once, removes keyboard handling, and returns to normal controls.
+    const finish = (allowed) => {
+      document.removeEventListener("keydown", handleKeydown, true);
+      cancelPendingPrompt = null;
+      show(allowed ? "Click allowed." : "Click denied. Continuing without it.");
+      resolvePrompt(allowed);
+    };
+
+    // Makes Escape equivalent to the default-safe Deny action.
+    const handleKeydown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        finish(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeydown, true);
+    cancelPendingPrompt = () => finish(false);
+    denyButton.focus();
+    return new Promise((resolve) => {
+      resolvePrompt = resolve;
+    });
+  };
+
   // Registers orchestration callbacks without exposing them on the panel host.
   const initialize = (nextHandlers) => {
     handlers = nextHandlers;
@@ -187,6 +257,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     initialize,
     setStatus,
     show,
+    showClickPermission,
     showSafetyWarning,
   });
 })();

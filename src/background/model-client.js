@@ -151,7 +151,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     return "Connection successful.";
   };
 
-  // Requests and validates values only for extension-listed field IDs.
+  // Requests fields and optional clicks, validating both extension ID allow-lists.
   const fillFields = async (model, promptData, externalSignal) => {
     const messages = globalThis.AIFormFiller.promptBuilder.buildMessages(promptData);
     const response = await sendRequest(
@@ -161,9 +161,13 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     );
     const responseText = await readResponseText(model, response);
     const allowedIds = promptData.fields.map((field) => field.id);
-    return globalThis.AIFormFiller.modelResponse.parseFieldResponse(
+    const allowedClickIds = (promptData.clickCandidates || []).map(
+      (candidate) => candidate.id,
+    );
+    return globalThis.AIFormFiller.modelResponse.parseFillResponse(
       responseText,
       allowedIds,
+      allowedClickIds,
     );
   };
 

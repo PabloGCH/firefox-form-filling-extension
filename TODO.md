@@ -6,8 +6,8 @@
 - [x] Target Firefox desktop, minimum version 119. Use Manifest V2 with `<all_urls>` host permission (simplest for cross-origin model calls and content scripts), unless there is a strong reason to use MV3.
 - [x] Use the `browser.*` WebExtension API (promise based). No external CDNs and, ideally, no libraries at all.
 - [x] Firefox content scripts cannot use ES modules directly. Either list several files in the manifest `js` array in dependency order, sharing one namespace object, or add a small bundler step (e.g. esbuild). Pick one approach and document it in the README.
-- [ ] **Core invariant: the extension NEVER submits a form.** It never calls `form.submit()` or `requestSubmit()`, never presses Enter, and never clicks a submit-like button, even with permission. It fills fields, notifies the user, and stops. The user reviews and submits manually.
-- [ ] **Core invariant: the extension NEVER clicks a button without explicit, per-click permission from the user** (see section 13). The only elements it changes without asking are the fields it fills (including setting checkboxes and radios).
+- [x] **Core invariant: the extension NEVER submits a form.** It never calls `form.submit()` or `requestSubmit()`, never presses Enter, and never clicks a submit-like button, even with permission. It fills fields, notifies the user, and stops. The user reviews and submits manually.
+- [x] **Core invariant: the extension NEVER clicks a button without explicit, per-click permission from the user** (see section 13). The only elements it changes without asking are the fields it fills (including setting checkboxes and radios).
 - [ ] **Core invariant: NO user data persists in the browser.** Everything lives in memory for the current session only (see section 5). The only way data leaves memory is the user pressing the models **Export** button, which downloads a file the user keeps (see section 7).
 - [x] The model's output is only ever used as field values for fields the extension itself listed. Page text (labels, names, placeholders, option text) is untrusted data and is never treated as instructions.
 
@@ -226,7 +226,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] Support multi-selects when the model returns a list of values.
 - [x] Dependent dropdowns: after filling, re-scan once for newly appeared fields and fill only those (still passing the safety gate).
 - [x] Report selects that could not be matched (e.g. "left 'Country' blank: no option matched 'Untied States'").
-- [ ] Custom (non-native) dropdowns that need a click to open go through the permission flow in section 13, and are skipped if the user denies.
+- [x] Custom (non-native) dropdowns that need a click to open go through the permission flow in section 13, and are skipped if the user denies.
 
 ## 11. Invisible-field safety gate (run BEFORE any model call)
 
@@ -249,27 +249,27 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] Update the system prompt: use a different entry for empty repeated sections and do not duplicate entries already on the form.
 - [x] Because "replace" is ON by default, pressing **Fill form** again re-fills every field in scope, including sections already completed. The user avoids this by pressing **Fill new fields only**, or by selecting just the new section as the area. Mention this in the UI near the replace setting and in the README.
 - [x] Detect repeated blocks (sibling elements with the same structure, names like `jobs[0]`, `jobs[1]`) and tag fields with section info (e.g. "Work experience, entry 2 of 3") so the model knows the order. This is heuristic; document its limits.
-- [ ] When more entries are needed than the form has, the extension may ask permission to click the page's "Add" button (section 13). It never clicks it on its own.
+- [x] When more entries are needed than the form has, the extension may ask permission to click the page's "Add" button (section 13). It never clicks it on its own.
 
 ## 13. Button clicking requires permission every time
 
-- [ ] Default behavior: the extension clicks nothing except setting checkboxes/radios as part of filling.
-- [ ] If the extension needs a button clicked (e.g. an "Add work experience" button to create another section, or a control that opens a custom dropdown), it must ask the user first. Never click first and report afterwards.
-- [ ] Permission flow for each click:
-  - [ ] Resolve the target element itself (extension logic, not the model). It must be inside the selected scope or its enclosing form, visible, and enabled.
-  - [ ] Auto-scroll so the button is centered in view (`scrollIntoView({ block: "center", behavior: "smooth" })`) and outline it clearly.
-  - [ ] Show a permission prompt in the on-page panel that states exactly what will be clicked (button text, type and where it is) and why, in plain language (e.g. "Click 'Add experience' to create a second work-experience section so I can fill in your second job").
-  - [ ] Offer **Allow** and **Deny**. Deny is focused by default; Esc denies. Only click after Allow.
-  - [ ] Accept Allow only from a trusted user event (`event.isTrusted`) inside the closed shadow DOM, so page scripts cannot approve on the user's behalf.
-- [ ] Permission is per click. No "allow all", no "remember this site". If three clicks are needed, ask three times.
-- [ ] The "why" text is written by the extension. If the model suggested the click, show its reason clearly labeled as model-provided and render it as plain text only (never HTML), length-limited.
-- [ ] The model can only request a click on a candidate button the extension listed (by id). It can never name arbitrary elements or selectors.
-- [ ] Never offer or click submit-like buttons, even with permission: `type="submit"`, `input type=submit/image`, buttons whose label looks like submit/send/apply/pay/register/sign up/place order, and links that navigate.
-- [ ] A `<button>` with no `type` inside a `<form>` submits by default. Treat it as risky: show a stronger note in the permission prompt, and block `submit` events during the click and for ~2 seconds afterwards so the form cannot be submitted.
-- [ ] Never click invisible buttons; the invisible-field safety gate logic applies to buttons too.
-- [ ] If the user denies a click, continue without it and mention it in the final summary (e.g. "Skipped adding a section: permission denied").
-- [ ] After a permitted click, re-scan and fill only the new fields (still passing the safety gate and the already-filled context from section 12).
-- [ ] Do not store a history of clicks or permissions.
+- [x] Default behavior: the extension clicks nothing except setting checkboxes/radios as part of filling.
+- [x] If the extension needs a button clicked (e.g. an "Add work experience" button to create another section, or a control that opens a custom dropdown), it must ask the user first. Never click first and report afterwards.
+- [x] Permission flow for each click:
+  - [x] Resolve the target element itself (extension logic, not the model). It must be inside the selected scope or its enclosing form, visible, and enabled.
+  - [x] Auto-scroll so the button is centered in view (`scrollIntoView({ block: "center", behavior: "smooth" })`) and outline it clearly.
+  - [x] Show a permission prompt in the on-page panel that states exactly what will be clicked (button text, type and where it is) and why, in plain language (e.g. "Click 'Add experience' to create a second work-experience section so I can fill in your second job").
+  - [x] Offer **Allow** and **Deny**. Deny is focused by default; Esc denies. Only click after Allow.
+  - [x] Accept Allow only from a trusted user event (`event.isTrusted`) inside the closed shadow DOM, so page scripts cannot approve on the user's behalf.
+- [x] Permission is per click. No "allow all", no "remember this site". If three clicks are needed, ask three times.
+- [x] The "why" text is written by the extension. If the model suggested the click, show its reason clearly labeled as model-provided and render it as plain text only (never HTML), length-limited.
+- [x] The model can only request a click on a candidate button the extension listed (by id). It can never name arbitrary elements or selectors.
+- [x] Never offer or click submit-like buttons, even with permission: `type="submit"`, `input type=submit/image`, buttons whose label looks like submit/send/apply/pay/register/sign up/place order, and links that navigate.
+- [x] A `<button>` with no `type` inside a `<form>` submits by default. Treat it as risky: show a stronger note in the permission prompt, and block `submit` events during the click and for ~2 seconds afterwards so the form cannot be submitted.
+- [x] Never click invisible buttons; the invisible-field safety gate logic applies to buttons too.
+- [x] If the user denies a click, continue without it and mention it in the final summary (e.g. "Skipped adding a section: permission denied").
+- [x] After a permitted click, re-scan and fill only the new fields (still passing the safety gate and the already-filled context from section 12).
+- [x] Do not store a history of clicks or permissions.
 
 ## 14. Privacy and security
 
@@ -306,5 +306,5 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] 5. Invisible-field safety gate.
 - [x] 6. Select matching improvements.
 - [x] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).
-- [ ] 8. Button-click permission flow (scroll, prompt, Allow/Deny, submit-like blocking).
+- [x] 8. Button-click permission flow (scroll, prompt, Allow/Deny, submit-like blocking).
 - [ ] 9. Final pass: file sizes, comments, README, manual checklist.

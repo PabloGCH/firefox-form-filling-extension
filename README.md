@@ -4,11 +4,11 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 7 — Dynamic and repeated sections.
-- **Next task:** Task 8 — Button-click permission flow.
-- **What works:** Every Fill re-collects the live scope. The model receives visible, length-limited existing values from the enclosing form or page, excluding password, payment-autocomplete, hidden, and oversized values. Indexed names and structurally repeated siblings receive entry-order hints, and the prompt forbids reusing entries already present. New-only controls and container re-finding remain supported.
-- **Known limitations:** Repeated-block detection is heuristic: indexed names are strongest, while sibling matching can miss heavily varied markup or use a generic heading. Context cannot infer whether an empty-looking custom widget has state. Custom dropdowns and add-section buttons remain untouched until Task 8. Live model behavior and the README manual checks are unverified.
-- **Verification:** Browser DOM checks produced correct `Jobs, entry 1/2 of 2` hints and unindexed sibling hints, while wider context included a completed job and excluded password, `cc-*`, hidden, empty, and 500+ character values. Syntax and forbidden API scans passed; extension lint and temporary Firefox loading are included in this task’s final checks.
+- **Last completed task:** Task 8 — Button-click permission flow.
+- **Next task:** Task 9 — Final code, documentation, and manual-checklist pass.
+- **What works:** The model can request only extension-listed, locally bound button IDs. Visible, enabled, non-navigation, non-destructive, and non-submit-like controls in the selected area or enclosing form are eligible. Every requested click scrolls and outlines its exact target, then shows an isolated Allow/Deny prompt; Deny is the safe default and Allow requires a trusted user event. Approved clicks trigger a safety-gated pass over only newly created fields.
+- **Known limitations:** Candidate purpose and repeated-block detection are heuristic. Highly bespoke custom widgets may expose an opener through the permission flow but still remain unfillable if their internal options are not native fields or button-like controls. Live behavior with a real model and the full README manual checklist remain unverified.
+- **Verification:** Live DOM checks excluded submit, destructive, disabled, invisible, link, and out-of-scope controls while retaining safe in-scope and enclosing-form Add buttons. They also confirmed target revalidation, plain-text prompt details, trusted Allow, Escape/Deny, no page click after denial, outline restoration, and submit blocking for an untyped form button. Model-response tests rejected unlisted and duplicate click IDs. JavaScript syntax checks, extension lint, and temporary Firefox loading passed.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
@@ -19,6 +19,7 @@ A Firefox desktop extension that will use a cloud or local language model to fil
   - Task 5 was moved before Task 4 at the user's direction so its pre-call check exists before the first form-data model call; Task 4 will integrate its remaining trigger and summary requirements.
   - Approved safety warning and notification wording is used by the hidden-field gate.
   - Final fill notifications use only total success, partial success, or failure with a general category; detailed counts stay in the panel. The separate hidden-field safety notification remains allowed.
+  - Click permission wording uses “Click “{button text}” to {extension reason}.” Type and location appear on a separate plain-text line; a bounded model reason is labeled separately.
 - **Open questions:** None.
 
 ## Privacy and session lifetime
@@ -54,9 +55,10 @@ Temporary add-ons are removed when Firefox closes. Use the toolbar popup to open
 2. Optionally choose **Select area** in the popup or page panel. Hover and click a container; use **ArrowUp** or **ArrowDown** to adjust, or **Esc** to cancel.
 3. Choose **Fill form** to follow the session replacement preference, or **Fill new fields only** to preserve every non-empty control.
 4. If invisible fields are reported, review the list. **Cancel** sends nothing; **Continue anyway** excludes every reported field from both the request and filling.
-5. Review highlighted values and submit the form yourself. The extension never submits it.
+5. If the model identifies a safe Add/open control that is needed, review the highlighted target and the permission prompt. **Deny** is focused by default, **Esc** denies, and permission applies to that click only.
+6. Review highlighted values and submit the form yourself. The extension never submits it.
 
-Native selects use tiered unique matching and one model retry. Custom dropdowns that require opening a page control remain untouched until the permission flow is implemented.
+Native selects use tiered unique matching and one model retry. Button-like custom-dropdown openers use the same per-click permission flow, though highly bespoke widget internals may remain unfillable.
 
 ## Personal information markdown
 
@@ -106,7 +108,7 @@ Model configuration import and export will use this shape:
 - `src/background/prompt-builder.js`: fixed instructions plus serialized reference and field data.
 - `src/background/model-client.js`: provider requests, timeout, cancellation, and response handling.
 - `src/background/model-response.js`: JSON extraction and field-ID/value-shape validation.
-- `src/content/`: ordered content scripts for isolated panel UI and hidden-control detection; picker and filling modules are next.
+- `src/content/`: ordered content scripts for picking, safety checks, filling, dynamic sections, and isolated per-click permission UI.
 - `src/options/`: settings page modules and styles.
 - `src/popup/`: toolbar popup status and session controls.
 - `src/shared/`: constants and model validation shared by extension pages and background scripts.

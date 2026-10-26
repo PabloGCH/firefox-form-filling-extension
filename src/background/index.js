@@ -76,7 +76,7 @@
     const controller = sessionState.beginFill(message.fields);
 
     try {
-      const values = await modelClient.fillFields(
+      const result = await modelClient.fillFields(
         { ...model },
         {
           alreadyFilled: Array.isArray(message.alreadyFilled)
@@ -84,11 +84,14 @@
             : [],
           fields: message.fields,
           infoText,
+          clickCandidates: Array.isArray(message.clickCandidates)
+            ? message.clickCandidates
+            : [],
         },
         controller.signal,
       );
-      sessionState.finishFill(controller, values);
-      return values;
+      sessionState.finishFill(controller, result.values);
+      return result;
     } catch (error) {
       sessionState.finishFill(controller);
       throw error;

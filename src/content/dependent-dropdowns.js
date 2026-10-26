@@ -7,8 +7,14 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   const { DEPENDENT_RESCAN_DELAY_MS } =
     globalThis.AIFormFiller.contentConstants;
-  const { fieldCollector, fieldFiller, safetyGate, sections, selectHandler } =
-    globalThis.AIFormFiller;
+  const {
+    buttonCandidates,
+    fieldCollector,
+    fieldFiller,
+    safetyGate,
+    sections,
+    selectHandler,
+  } = globalThis.AIFormFiller;
 
   // Waits briefly for synchronous framework changes to render dependent controls.
   const waitForRender = () =>
@@ -59,12 +65,18 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
           (field) => !previousSafety.excludedFields.has(field),
         ).length;
         return {
-          deniedClicks: 0,
-          filled: 0,
-          leftBlank: 0,
-          skippedHidden: newlySkipped,
-          unmatchedSelectDetails: [],
-          unmatchedSelects: 0,
+          blocked: true,
+          clickBatch: null,
+          newElements: new Set(),
+          safetyResult,
+          summary: {
+            deniedClicks: 0,
+            filled: 0,
+            leftBlank: 0,
+            skippedHidden: newlySkipped,
+            unmatchedSelectDetails: [],
+            unmatchedSelects: 0,
+          },
         };
       }
     }
@@ -83,24 +95,35 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
     sections.addHints(collected.descriptions, collected.bindings);
 
-    const rawValues = await browser.runtime.sendMessage({
+    const candidates = buttonCandidates.collect(scope);
+    const response = await browser.runtime.sendMessage({
       type: "fill:request",
       alreadyFilled: sections.collectAlreadyFilled(scope),
+      clickCandidates: candidates.descriptions,
       fields: collected.descriptions,
       safetyChecked: true,
     });
     const values = await selectHandler.resolveValues(
       collected.bindings,
-      rawValues,
+      response.values,
     );
     const newlySkipped = [...safetyResult.excludedFields].filter(
       (field) => !previousSafety.excludedFields.has(field),
     ).length;
-    return fieldFiller.fill(
-      collected.bindings,
-      values,
-      newlySkipped,
-    );
+    return {
+      blocked: false,
+      clickBatch: {
+        bindings: candidates.bindings,
+        requests: response.clickRequests,
+      },
+      newElements: new Set(
+        [...collected.bindings.values()].flatMap((binding) =>
+          binding.elements || [binding.element],
+        ),
+      ),
+      safetyResult,
+      summary: fieldFiller.fill(collected.bindings, values, newlySkipped),
+    };
   };
 
   globalThis.AIFormFiller.dependentDropdowns = Object.freeze({ fillNewFields });

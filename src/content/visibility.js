@@ -28,7 +28,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       const style = getComputedStyle(current);
 
       if (
-        current.hidden ||
+        current.hasAttribute("hidden") ||
         style.display === "none" ||
         style.visibility === "hidden" ||
         Number(style.opacity) === 0
@@ -89,7 +89,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     for (const element of ancestors) {
       const style = getComputedStyle(element);
 
-      if (element.hidden) {
+      if (element.hasAttribute("hidden")) {
         return "the hidden attribute";
       }
 
