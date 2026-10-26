@@ -1,19 +1,17 @@
-/* Renders status, controls, and safety decisions in one closed shadow root. */
+/* Owns the closed-shadow panel host, normal status view, and prompt lifecycle. */
 
 globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
 (() => {
   "use strict";
 
-  const { CLICK_REASON_MAX_LENGTH, SAFETY_WARNING_TEXT } =
-    globalThis.AIFormFiller.contentConstants;
   let panelHost = null;
   let panelRoot = null;
   let statusElement = null;
   let handlers = null;
   let cancelPendingPrompt = null;
 
-  // Defines isolated visual styles shared by normal and warning views.
+  // Defines isolated visual styles shared by normal and prompt views.
   const createStyles = () => {
     const style = document.createElement("style");
     style.textContent = `
@@ -39,7 +37,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     return style;
   };
 
-  // Creates the host once; the closed root is retained only inside this module.
+  // Creates the host once; the closed root remains private to content scripts.
   const ensureRoot = () => {
     if (panelHost?.isConnected) {
       return;
@@ -52,7 +50,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     document.documentElement.append(panelHost);
   };
 
-  // Creates a button whose callbacks never become visible to the page.
+  // Creates a button whose callback remains inside the closed shadow tree.
   const createButton = (text, callback, className = "") => {
     const button = document.createElement("button");
     button.type = "button";
@@ -65,7 +63,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   // Restores the normal status view and required controls.
   const show = (status = "Ready to fill this page.") => {
     ensureRoot();
-    const panel = document.createElement("section");
+    const section = document.createElement("section");
     const heading = document.createElement("h2");
     const actions = document.createElement("div");
     heading.textContent = "AI Form Filler";
@@ -80,184 +78,56 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       createButton("Select area", () => handlers?.selectArea()),
       createButton("Close", () => close()),
     );
-    panel.className = "panel";
-    panel.append(heading, statusElement, actions);
-    panelRoot.replaceChildren(createStyles(), panel);
+    section.className = "panel";
+    section.append(heading, statusElement, actions);
+    panelRoot.replaceChildren(createStyles(), section);
   };
 
-  // Updates status while leaving the panel controls available.
+  // Replaces the normal view with one prompt built by the prompt module.
+  const showPrompt = (section, cancelPrompt) => {
+    ensureRoot();
+    statusElement = null;
+    cancelPendingPrompt = cancelPrompt;
+    panelRoot.replaceChildren(createStyles(), section);
+  };
+
+  // Clears a resolved prompt without accidentally invoking its cancel callback.
+  const finishPrompt = () => {
+    cancelPendingPrompt = null;
+  };
+
+  // Updates status while leaving the normal panel controls available.
   const setStatus = (message) => {
     if (!panelHost?.isConnected || !statusElement) {
       show(message);
       return;
     }
-
     statusElement.textContent = message;
   };
 
-  // Removes all panel state and treats an unresolved warning as canceled.
+  // Removes all panel state and safely cancels an unresolved prompt.
   const close = () => {
-    if (cancelPendingPrompt) {
-      const cancel = cancelPendingPrompt;
-      cancelPendingPrompt = null;
-      cancel();
-    }
-
+    const cancel = cancelPendingPrompt;
+    cancelPendingPrompt = null;
+    cancel?.();
     panelHost?.remove();
     panelHost = null;
     panelRoot = null;
     statusElement = null;
   };
 
-  // Builds a plain-text list so page-derived values cannot become markup.
-  const createFindingsList = (findings) => {
-    const list = document.createElement("ul");
-    findings.forEach((finding) => {
-      const item = document.createElement("li");
-      item.textContent = finding.description;
-      list.append(item);
-    });
-    return list;
-  };
-
-  // Pauses the normal panel for the mandatory hidden-field decision.
-  const showSafetyWarning = (findings, notificationError = null) => {
-    ensureRoot();
-    const panel = document.createElement("section");
-    const heading = document.createElement("h2");
-    const message = document.createElement("p");
-    const actions = document.createElement("div");
-    const cancelButton = createButton("Cancel", () => finish(false));
-    const continueButton = createButton(
-      "Continue anyway",
-      () => finish(true),
-      "danger",
-    );
-    panel.className = "panel warning";
-    panel.setAttribute("role", "alertdialog");
-    panel.setAttribute("aria-modal", "true");
-    heading.textContent = "Invisible fields found";
-    message.textContent = SAFETY_WARNING_TEXT;
-    actions.className = "actions";
-    actions.append(cancelButton, continueButton);
-    panel.append(heading, message, createFindingsList(findings));
-
-    if (notificationError) {
-      const error = document.createElement("p");
-      error.textContent = notificationError;
-      panel.append(error);
-    }
-
-    panel.append(actions);
-    panelRoot.replaceChildren(createStyles(), panel);
-
-    let resolvePrompt;
-
-    // Resolves once, removes the Escape listener, and restores normal controls.
-    const finish = (shouldContinue) => {
-      document.removeEventListener("keydown", handleKeydown, true);
-      cancelPendingPrompt = null;
-      show(shouldContinue ? "Continuing with visible fields only." : "Fill canceled.");
-      resolvePrompt(shouldContinue);
-    };
-
-    // Treats Escape as Cancel even if focus has moved outside the panel.
-    const handleKeydown = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        finish(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeydown, true);
-    cancelPendingPrompt = () => finish(false);
-    cancelButton.focus();
-    return new Promise((resolve) => {
-      resolvePrompt = resolve;
-    });
-  };
-
-  // Shows one isolated Allow/Deny decision and accepts Allow only from real input.
-  const showClickPermission = (details) => {
-    ensureRoot();
-    const section = document.createElement("section");
-    const heading = document.createElement("h2");
-    const message = document.createElement("p");
-    const metadata = document.createElement("p");
-    const actions = document.createElement("div");
-    const denyButton = createButton("Deny", () => finish(false));
-    const allowButton = createButton("Allow", (event) => {
-      if (event.isTrusted) {
-        finish(true);
-      }
-    }, "primary");
-    heading.textContent = "Permission to click";
-    message.textContent = `Click “${details.text}” to ${details.extensionReason}.`;
-    metadata.textContent = `Control: ${details.controlType}; location: ${details.location}.`;
-    actions.className = "actions";
-    actions.append(denyButton, allowButton);
-    section.className = "panel warning";
-    section.setAttribute("role", "alertdialog");
-    section.setAttribute("aria-modal", "true");
-    section.append(heading, message, metadata);
-
-    if (details.modelReason) {
-      const modelReason = document.createElement("p");
-      modelReason.textContent = `Model-provided reason: ${String(details.modelReason).slice(
-        0,
-        CLICK_REASON_MAX_LENGTH,
-      )}`;
-      section.append(modelReason);
-    }
-
-    if (details.riskyUntypedButton) {
-      const warning = document.createElement("p");
-      warning.textContent =
-        "This button may submit by default. Submission will be blocked during and after the click.";
-      section.append(warning);
-    }
-
-    section.append(actions);
-    panelRoot.replaceChildren(createStyles(), section);
-    let resolvePrompt;
-
-    // Resolves once, removes keyboard handling, and returns to normal controls.
-    const finish = (allowed) => {
-      document.removeEventListener("keydown", handleKeydown, true);
-      cancelPendingPrompt = null;
-      show(allowed ? "Click allowed." : "Click denied. Continuing without it.");
-      resolvePrompt(allowed);
-    };
-
-    // Makes Escape equivalent to the default-safe Deny action.
-    const handleKeydown = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        finish(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeydown, true);
-    cancelPendingPrompt = () => finish(false);
-    denyButton.focus();
-    return new Promise((resolve) => {
-      resolvePrompt = resolve;
-    });
-  };
-
-  // Registers orchestration callbacks without exposing them on the panel host.
+  // Registers orchestration callbacks without exposing them on the host element.
   const initialize = (nextHandlers) => {
     handlers = nextHandlers;
   };
 
   globalThis.AIFormFiller.panel = Object.freeze({
     close,
+    createButton,
+    finishPrompt,
     initialize,
     setStatus,
     show,
-    showClickPermission,
-    showSafetyWarning,
+    showPrompt,
   });
 })();

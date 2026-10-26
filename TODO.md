@@ -2,29 +2,29 @@
 
 ## 0. Context for the coding agent
 
-- [ ] Build a Firefox extension that connects to an LLM (cloud or local) and uses it to fill web forms with personal info the user loads each session.
+- [x] Build a Firefox extension that connects to an LLM (cloud or local) and uses it to fill web forms with personal info the user loads each session.
 - [x] Target Firefox desktop, minimum version 119. Use Manifest V2 with `<all_urls>` host permission (simplest for cross-origin model calls and content scripts), unless there is a strong reason to use MV3.
 - [x] Use the `browser.*` WebExtension API (promise based). No external CDNs and, ideally, no libraries at all.
 - [x] Firefox content scripts cannot use ES modules directly. Either list several files in the manifest `js` array in dependency order, sharing one namespace object, or add a small bundler step (e.g. esbuild). Pick one approach and document it in the README.
 - [x] **Core invariant: the extension NEVER submits a form.** It never calls `form.submit()` or `requestSubmit()`, never presses Enter, and never clicks a submit-like button, even with permission. It fills fields, notifies the user, and stops. The user reviews and submits manually.
 - [x] **Core invariant: the extension NEVER clicks a button without explicit, per-click permission from the user** (see section 13). The only elements it changes without asking are the fields it fills (including setting checkboxes and radios).
-- [ ] **Core invariant: NO user data persists in the browser.** Everything lives in memory for the current session only (see section 5). The only way data leaves memory is the user pressing the models **Export** button, which downloads a file the user keeps (see section 7).
+- [x] **Core invariant: NO user data persists in the browser.** Everything lives in memory for the current session only (see section 5). The only way data leaves memory is the user pressing the models **Export** button, which downloads a file the user keeps (see section 7).
 - [x] The model's output is only ever used as field values for fields the extension itself listed. Page text (labels, names, placeholders, option text) is untrusted data and is never treated as instructions.
 
 ## 1. Code quality rules (apply to every file)
 
-- [ ] Keep the code readable: clear names, small functions that do one thing, no clever one-liners, no dead code.
-- [ ] Add a comment before every function, class and non-trivial block explaining what it does and why. Add a short header comment at the top of each file stating its purpose.
-- [ ] Keep files short (aim for under ~200 lines). When a file grows beyond that, split it into new files with a single responsibility.
-- [ ] Organize files into folders by area (see structure below). Do not put everything in one directory.
-- [ ] Put constants (skip-lists, thresholds, the example JSON text) in dedicated constants files, not inline.
-- [ ] Use `const`/`let` only, never `var`.
-- [ ] Handle errors explicitly. Show the user readable messages (e.g. "Could not reach the model endpoint"), never fail silently.
+- [x] Keep the code readable: clear names, small functions that do one thing, no clever one-liners, no dead code.
+- [x] Add a comment before every function, class and non-trivial block explaining what it does and why. Add a short header comment at the top of each file stating its purpose.
+- [x] Keep files short (aim for under ~200 lines). When a file grows beyond that, split it into new files with a single responsibility.
+- [x] Organize files into folders by area (see structure below). Do not put everything in one directory.
+- [x] Put constants (skip-lists, thresholds, the example JSON text) in dedicated constants files, not inline.
+- [x] Use `const`/`let` only, never `var`.
+- [x] Handle errors explicitly. Show the user readable messages (e.g. "Could not reach the model endpoint"), never fail silently.
 - [x] Write a README with install steps (temporary add-on via `about:debugging`), Ollama setup, the models JSON format and markdown file usage, folder overview, and the manual checklist from section 15.
 
 ## 2. Suggested project structure
 
-- [ ] Create a structure along these lines (adjust if needed, but keep it foldered):
+- [x] Create a structure along these lines (adjust if needed, but keep it foldered):
 
 ```
 ai-form-filler/
@@ -307,4 +307,4 @@ The model settings section has four things: a manual form, a list of loaded mode
 - [x] 6. Select matching improvements.
 - [x] 7. Dynamic and repeated sections (already-filled context, section hints, re-render handling, Fill new fields only).
 - [x] 8. Button-click permission flow (scroll, prompt, Allow/Deny, submit-like blocking).
-- [ ] 9. Final pass: file sizes, comments, README, manual checklist.
+- [x] 9. Final pass: file sizes, comments, README, manual checklist.

@@ -1,4 +1,4 @@
-/* Classifies concealed controls for the safety gate and future click checks. */
+/* Classifies concealed controls for field safety and button click checks. */
 
 globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 

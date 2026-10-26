@@ -9,46 +9,15 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     buttonCandidates,
     clickFlow,
     dependentDropdowns,
-    fieldCollector,
     fieldFiller,
+    fillPreparation,
     fillSummary: summaryTools,
     panel,
-    picker,
-    safetyGate,
     sections,
     selectHandler,
-    visibility,
   } = globalThis.AIFormFiller;
   let fillInProgress = false;
   let sessionVersion = 0;
-
-  // Checks prerequisites without receiving markdown text or API keys.
-  const getReadySummary = async () => {
-    const summary = await browser.runtime.sendMessage({
-      type: "session:get-fill-readiness",
-    });
-
-    if (!summary.infoLoaded) {
-      throw new Error(
-        "No personal information is loaded. Open settings and load a markdown file.",
-      );
-    }
-
-    if (!summary.modelLoaded) {
-      throw new Error(
-        "No model is loaded. Open settings and add or import a model.",
-      );
-    }
-
-    return summary;
-  };
-
-  // Detects controls that became concealed after their safety decision.
-  const hasNewlyHiddenBinding = (bindings) =>
-    [...bindings.values()].some((binding) => {
-      const elements = binding.elements || [binding.element];
-      return elements.some((element) => visibility.getInvisibleReason(element));
-    });
 
   // Performs one fill only after the safety gate returns an explicit decision.
   const run = async (newFieldsOnly = false) => {
@@ -63,61 +32,14 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     const fillVersion = sessionVersion;
 
     try {
-      const summary = await getReadySummary();
-      const scopeResult = picker.getScope();
-
-      if (scopeResult.missing) {
-        throw new Error(
-          "The selected area is no longer on the page. Select the area again before filling.",
-        );
-      }
-
-      let safetyResult = await safetyGate.check(scopeResult.scope);
-
-      if (!safetyResult.allowed || fillVersion !== sessionVersion) {
+      const prepared = await fillPreparation.prepare(
+        newFieldsOnly,
+        () => fillVersion !== sessionVersion,
+      );
+      if (!prepared) {
         return;
       }
-
-      const latestScope = picker.getScope();
-
-      if (latestScope.missing || latestScope.scope !== scopeResult.scope) {
-        throw new Error(
-          "The selected area changed during the safety check. Select it again before filling.",
-        );
-      }
-
-      const newHiddenField = safetyGate
-        .scan(scopeResult.scope)
-        .some((finding) => !safetyResult.excludedFields.has(finding.element));
-
-      if (newHiddenField) {
-        safetyResult = await safetyGate.check(scopeResult.scope);
-
-        if (!safetyResult.allowed || fillVersion !== sessionVersion) {
-          return;
-        }
-      }
-
-      const replaceExisting = newFieldsOnly
-        ? false
-        : summary.replaceExistingValues;
-      let collected = fieldCollector.collect(scopeResult.scope, {
-        excludedFields: safetyResult.excludedFields,
-        replaceExisting,
-      });
-
-      if (hasNewlyHiddenBinding(collected.bindings)) {
-        safetyResult = await safetyGate.check(scopeResult.scope);
-
-        if (!safetyResult.allowed || fillVersion !== sessionVersion) {
-          return;
-        }
-
-        collected = fieldCollector.collect(scopeResult.scope, {
-          excludedFields: safetyResult.excludedFields,
-          replaceExisting,
-        });
-      }
+      const { collected, replaceExisting, safetyResult, scopeResult } = prepared;
 
       if (collected.descriptions.length === 0) {
         panel.setStatus("No fillable inputs were found in this area.");
@@ -154,7 +76,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         values,
         safetyResult.skippedHidden,
       );
-      let dependentFailed = false;
+      let dependentError = null;
       const clickState = clickFlow.createState(
         fillSummary,
         initialElements,
@@ -184,17 +106,22 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
           () => fillVersion !== sessionVersion,
         );
         fillSummary = clickState.summary;
-      } catch {
-        dependentFailed = true;
+      } catch (error) {
+        dependentError = error.message || "Additional fields could not be filled.";
       }
 
       if (fillVersion !== sessionVersion) {
         return;
       }
 
-      panel.setStatus(summaryTools.format(fillSummary));
+      const finalStatus = summaryTools.format(fillSummary);
+      panel.setStatus(
+        dependentError
+          ? `${finalStatus} Additional fields could not be filled: ${dependentError}`
+          : finalStatus,
+      );
       const partial =
-        dependentFailed ||
+        Boolean(dependentError) ||
         clickState.blocked ||
         clickState.limitReached ||
         fillSummary.deniedClicks > 0 ||

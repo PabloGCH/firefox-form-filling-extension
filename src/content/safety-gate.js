@@ -67,7 +67,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       notificationError = "Desktop notification could not be shown.";
     }
 
-    const shouldContinue = await globalThis.AIFormFiller.panel.showSafetyWarning(
+    const shouldContinue = await globalThis.AIFormFiller.panelPrompts.showSafetyWarning(
       findings,
       notificationError,
     );

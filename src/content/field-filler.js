@@ -88,7 +88,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     return true;
   };
 
-  // Applies only exact native option values; advanced matching is Task 6.
+  // Applies only option values already resolved by the tiered select matcher.
   const fillSelect = (binding, value) => {
     const field = binding.element;
     let requested = [String(value)];

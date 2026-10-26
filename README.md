@@ -1,14 +1,14 @@
 # AI Form Filler
 
-A Firefox desktop extension that will use a cloud or local language model to fill forms from personal information loaded for the current browser session.
+A Firefox desktop extension that uses a cloud or local language model to fill forms from personal information loaded for the current browser session.
 
 ## Progress
 
-- **Last completed task:** Task 8 — Button-click permission flow.
-- **Next task:** Task 9 — Final code, documentation, and manual-checklist pass.
-- **What works:** The model can request only extension-listed, locally bound button IDs. Visible, enabled, non-navigation, non-destructive, and non-submit-like controls in the selected area or enclosing form are eligible. Every requested click scrolls and outlines its exact target, then shows an isolated Allow/Deny prompt; Deny is the safe default and Allow requires a trusted user event. Approved clicks trigger a safety-gated pass over only newly created fields.
-- **Known limitations:** Candidate purpose and repeated-block detection are heuristic. Highly bespoke custom widgets may expose an opener through the permission flow but still remain unfillable if their internal options are not native fields or button-like controls. Live behavior with a real model and the full README manual checklist remain unverified.
-- **Verification:** Live DOM checks excluded submit, destructive, disabled, invisible, link, and out-of-scope controls while retaining safe in-scope and enclosing-form Add buttons. They also confirmed target revalidation, plain-text prompt details, trusted Allow, Escape/Deny, no page click after denial, outline restoration, and submit blocking for an untyped form button. Model-response tests rejected unlisted and duplicate click IDs. JavaScript syntax checks, extension lint, and temporary Firefox loading passed.
+- **Last completed task:** Task 9 — Final code, documentation, and manual-checklist pass.
+- **Next task:** None. The planned build is complete; run the manual checklist below on the target sites and models you intend to use.
+- **What works:** Session-only markdown and model setup, OpenAI-compatible and Anthropic requests, scoped area picking, invisible-field approval, native field and select filling, dynamic and repeated sections, and permission-gated Add/open button clicks are implemented. The model can affect only extension-listed field or click IDs, and forms are never submitted by the extension.
+- **Known limitations:** Candidate purpose and repeated-block detection are heuristic. Highly bespoke custom widgets may expose an opener through the permission flow but remain unfillable if their internals are not native fields or button-like controls. No real model endpoint was available for this final pass, and the user-run checklist remains intentionally unchecked.
+- **Verification:** Final checks covered JavaScript syntax, manifest validation, forbidden persistence/submission/network patterns, model/import allow-list validation, session reset and export shape, prompt behavior, and module size/header audits. Live DOM checks reconfirmed safe button filtering, closed-shadow prompts, trusted Allow, Escape cancellation, target outline restoration, and submit blocking. The extension loaded temporarily in Firefox. `web-ext lint` reports no errors and only the known missing add-on ID and future data-collection declaration warnings.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
@@ -26,7 +26,7 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 Nothing is saved between sessions. Personal information, model configurations, API keys, URLs, active-model choice, settings, field data, and pending actions live only in the persistent Manifest V2 background page's memory. Closing Firefox, disabling or reloading the extension, or using **Clear all data** removes them.
 
-The planned **Export models (JSON)** button is the only way the extension will save model configuration. Exported files can contain API keys in plain text and must be stored carefully. The extension will have no telemetry or analytics, and network requests will go only to model endpoints the user loads.
+The **Export models (JSON)** button is the only way the extension saves model configuration. Exported files can contain API keys in plain text and must be stored carefully. The extension has no telemetry or analytics, and network requests go only to model endpoints the user loads.
 
 The extension never submits forms. It will not click page buttons without explicit permission for each click.
 
@@ -62,13 +62,13 @@ Native selects use tiered unique matching and one model retry. Button-like custo
 
 ## Personal information markdown
 
-The settings page will accept one UTF-8 `.md` file containing the information used to answer form fields. It can contain prose and distinct repeated entries under headings, such as separate jobs or education records. Instructions such as declining marketing emails belong in that file.
+The settings page accepts one UTF-8 `.md` file containing the information used to answer form fields. It can contain prose and distinct repeated entries under headings, such as separate jobs or education records. Instructions such as declining marketing emails belong in that file.
 
-The full text will remain in memory and be sent to the active model on every fill. With a cloud model, it leaves the computer. There will be no personal-information export or parsing into profile rows.
+The full text remains in memory and is sent to the active model on every fill. With a cloud model, it leaves the computer. There is no personal-information export or parsing into profile rows.
 
 ## Models JSON format
 
-Model configuration import and export will use this shape:
+Model configuration import and export use this shape:
 
 ```json
 {
@@ -79,6 +79,19 @@ Model configuration import and export will use this shape:
       "provider": "openai",
       "baseUrl": "http://localhost:11434/v1",
       "model": "llama3.1"
+    },
+    {
+      "name": "Local LM Studio",
+      "provider": "openai",
+      "baseUrl": "http://localhost:1234/v1",
+      "model": "your-model-name"
+    },
+    {
+      "name": "Cloud (OpenAI-compatible)",
+      "provider": "openai",
+      "baseUrl": "https://api.example.com/v1",
+      "model": "your-model-name",
+      "apiKey": "YOUR_API_KEY"
     },
     {
       "name": "Anthropic",

@@ -13,6 +13,7 @@
     "scripts": [
       "src/shared/constants.js",
       "src/shared/validators.js",
+      "src/background/session-state-helpers.js",
       "src/background/session-state.js",
       "src/background/prompt-constants.js",
       "src/background/prompt-builder.js",
@@ -39,6 +40,7 @@
         "src/content/constants.js",
         "src/content/visibility.js",
         "src/content/panel.js",
+        "src/content/panel-prompts.js",
         "src/content/button-candidates.js",
         "src/content/safety-gate.js",
         "src/content/picker.js",
@@ -53,6 +55,7 @@
         "src/content/dependent-dropdowns.js",
         "src/content/fill-summary.js",
         "src/content/click-flow.js",
+        "src/content/fill-preparation.js",
         "src/content/fill-flow.js",
         "src/content/index.js"
       ],

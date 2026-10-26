@@ -6,7 +6,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   "use strict";
 
   const { CLICK_OUTLINE } = globalThis.AIFormFiller.contentConstants;
-  const { buttonCandidates, panel, submitGuard } = globalThis.AIFormFiller;
+  const { buttonCandidates, panel, panelPrompts, submitGuard } =
+    globalThis.AIFormFiller;
 
   // Writes the extension-owned purpose rather than trusting model prose as the purpose.
   const getExtensionReason = (binding) => {
@@ -41,7 +42,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
     binding.element.scrollIntoView({ block: "center", behavior: "smooth" });
     const restoreOutline = outline(binding.element);
-    const allowed = await panel.showClickPermission({
+    const allowed = await panelPrompts.showClickPermission({
       ...binding.description,
       extensionReason: getExtensionReason(binding),
       modelReason,
