@@ -1,0 +1,59 @@
+/* Styles the compact toolbar popup with visible keyboard focus. */
+
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+main {
+  padding: 16px;
+}
+
+h1 {
+  font-size: 1.25rem;
+  margin-top: 0;
+}
+
+label,
+select {
+  display: block;
+  width: 100%;
+}
+
+select,
+button {
+  box-sizing: border-box;
+  font: inherit;
+  padding: 7px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+#popup-status {
+  margin-bottom: 0;
+  min-height: 1.4em;
+}
+
+.error {
+  color: #b42318;
+}
+
+[hidden] {
+  display: none !important;
+}

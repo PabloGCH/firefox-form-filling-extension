@@ -1,0 +1,174 @@
+/* Provides an accessible, compact layout for the extension settings page. */
+
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 780px;
+  padding: 24px;
+}
+
+section {
+  border-top: 1px solid CanvasText;
+  margin-top: 28px;
+  padding-top: 18px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+
+input,
+select,
+textarea,
+button,
+.button-label {
+  box-sizing: border-box;
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid GrayText;
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button,
+.button-label {
+  background: ButtonFace;
+  border: 1px solid ButtonText;
+  border-radius: 4px;
+  color: ButtonText;
+  cursor: pointer;
+  display: inline-block;
+  padding: 7px 12px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button:focus-visible,
+.button-label:focus-within,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+.inline-control,
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-control input {
+  flex: 1;
+}
+
+.help,
+.empty-state {
+  color: GrayText;
+  font-size: 0.9rem;
+}
+
+.privacy-notice {
+  background: color-mix(in srgb, Canvas 85%, #2684ff 15%);
+  border-left: 4px solid #2684ff;
+  padding: 10px;
+}
+
+.warning,
+.field-error {
+  color: #b42318;
+}
+
+.field-error {
+  font-size: 0.9rem;
+  min-height: 1.4em;
+}
+
+.status {
+  min-height: 1.5em;
+}
+
+.status.error {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.checkbox {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.checkbox input {
+  width: auto;
+}
+
+.model-card {
+  border: 1px solid GrayText;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  padding: 14px;
+}
+
+.model-card dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  margin: 0 0 12px;
+}
+
+.model-card dd {
+  overflow-wrap: anywhere;
+}
+
+.model-card dt {
+  font-weight: 600;
+}
+
+.model-result {
+  margin: 8px 0 0;
+  min-height: 1.4em;
+}
+
+.import-actions {
+  margin-top: 18px;
+}
+
+.danger-zone {
+  border-color: #b42318;
+}
+
+[hidden] {
+  display: none !important;
+}

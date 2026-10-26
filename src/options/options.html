@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Form Filler settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>AI Form Filler settings</h1>
+        <p>
+          Nothing is saved between sessions. Reload your information and models
+          whenever Firefox restarts or the extension reloads.
+        </p>
+      </header>
+
+      <p id="page-status" class="status" role="status" aria-live="polite"></p>
+
+      <section id="information-section" aria-labelledby="information-heading">
+        <h2 id="information-heading">Personal information</h2>
+        <p class="privacy-notice">
+          The markdown contents and field values already on a form are sent to
+          the active model on every fill. With a cloud model, this data leaves
+          your computer.
+        </p>
+        <label for="info-file">Load a UTF-8 markdown file</label>
+        <input id="info-file" type="file" accept=".md,text/markdown,text/plain" />
+        <p id="info-empty" class="empty-state">
+          No info file loaded. Choose a markdown file above.
+        </p>
+        <div id="info-editor" hidden>
+          <p>
+            <strong id="info-name"></strong>
+            <span id="info-count"></span>
+          </p>
+          <p id="info-warning" class="warning" hidden></p>
+          <label for="info-text">Information used for filling</label>
+          <textarea id="info-text" rows="14" spellcheck="false"></textarea>
+          <p class="help">
+            Edits affect this session only and are not written back to the file.
+            Use headings to keep repeated jobs or education entries distinct.
+          </p>
+        </div>
+      </section>
+
+      <section id="models-section" aria-labelledby="models-heading">
+        <h2 id="models-heading">Models</h2>
+        <p class="privacy-notice">
+          Model configurations can contain secrets. They stay in memory unless
+          you explicitly export them; exported files include API keys in plain
+          text.
+        </p>
+
+        <form id="model-form" novalidate>
+          <h3 id="model-form-heading">Add a model</h3>
+          <input id="editing-name" type="hidden" />
+
+          <div class="field">
+            <label for="model-name">Name</label>
+            <input id="model-name" name="name" autocomplete="off" required />
+            <span class="help">A unique name shown in model selectors.</span>
+            <span id="model-name-error" class="field-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="model-provider">Provider</label>
+            <select id="model-provider" name="provider">
+              <option value="openai">OpenAI-compatible</option>
+              <option value="anthropic">Anthropic</option>
+            </select>
+            <span class="help">
+              OpenAI-compatible means any server exposing
+              <code>/chat/completions</code>: Ollama, LM Studio, llama.cpp,
+              OpenAI, OpenRouter, and similar.
+            </span>
+            <span id="model-provider-error" class="field-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="model-base-url">Base URL</label>
+            <input id="model-base-url" name="baseUrl" type="url" required />
+            <span class="help">For example, http://localhost:11434/v1.</span>
+            <span id="model-base-url-error" class="field-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="model-id">Model name</label>
+            <input id="model-id" name="model" autocomplete="off" required />
+            <span class="help">The exact model identifier expected by the server.</span>
+            <span id="model-id-error" class="field-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="model-api-key">API key (optional)</label>
+            <div class="inline-control">
+              <input id="model-api-key" name="apiKey" type="password" autocomplete="off" />
+              <button id="toggle-api-key" type="button">Show</button>
+            </div>
+            <span class="help">Usually unnecessary for a local model.</span>
+            <span id="model-api-key-error" class="field-error"></span>
+            <label id="clear-api-key-label" class="checkbox" hidden>
+              <input id="clear-api-key" type="checkbox" />
+              Clear the existing API key
+            </label>
+          </div>
+
+          <div class="actions">
+            <button id="save-model" type="submit">Add model</button>
+            <button id="cancel-model-edit" type="button" hidden>Cancel</button>
+          </div>
+        </form>
+
+        <h3>Loaded models</h3>
+        <p id="models-empty" class="empty-state">
+          No models loaded. Add one above or import a JSON file.
+        </p>
+        <div id="models-list"></div>
+
+        <div class="actions import-actions">
+          <label class="button-label" for="models-file">Import models (JSON)</label>
+          <input id="models-file" type="file" accept=".json,application/json" hidden />
+          <button id="export-models" type="button" disabled>Export models (JSON)</button>
+          <button id="copy-example" type="button">Copy example</button>
+        </div>
+      </section>
+
+      <section aria-labelledby="preferences-heading">
+        <h2 id="preferences-heading">Session preferences</h2>
+        <label class="checkbox">
+          <input id="replace-existing" type="checkbox" />
+          Replace values in fields that already have something
+        </label>
+        <p class="help">
+          This starts enabled each session. Later, “Fill new fields only” will ignore
+          this setting and preserve existing values.
+        </p>
+      </section>
+
+      <section class="danger-zone" aria-labelledby="clear-heading">
+        <h2 id="clear-heading">Clear session data</h2>
+        <button id="clear-data" type="button">Clear all data</button>
+      </section>
+    </main>
+
+    <script src="../shared/constants.js"></script>
+    <script src="../shared/validators.js"></script>
+    <script src="markdown-upload.js"></script>
+    <script src="models-form.js"></script>
+    <script src="models-list.js"></script>
+    <script src="models-import-export.js"></script>
+    <script src="clear-data.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>

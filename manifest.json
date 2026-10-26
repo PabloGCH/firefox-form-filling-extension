@@ -11,9 +11,20 @@
   "permissions": ["<all_urls>", "notifications"],
   "background": {
     "scripts": [
+      "src/shared/constants.js",
+      "src/shared/validators.js",
       "src/background/session-state.js",
+      "src/background/model-client.js",
       "src/background/index.js"
     ],
     "persistent": true
+  },
+  "browser_action": {
+    "default_title": "AI Form Filler",
+    "default_popup": "src/popup/popup.html"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
   }
 }

@@ -89,25 +89,25 @@ ai-form-filler/
 - [x] No user data is ever written to disk by the extension. Do NOT use `browser.storage.local`, `browser.storage.sync`, `localStorage`, `sessionStorage`, IndexedDB, cookies, or the cache for: the markdown info, model configurations, API keys, URLs, the active model choice, settings, or any field values.
 - [x] Hold all session data in memory in one place: a module in the background page (`session-state.js`). Use a persistent MV2 background page (`"persistent": true`) so the data lives as long as the browser session.
 - [ ] The options page, popup and content scripts access data only via messages to the background page. The content script never receives API keys or the markdown text; it sends field descriptions to the background, which builds the prompt and calls the model.
-- [ ] The options page and popup keep no copy of the data beyond what they currently display, and re-request it from the background when opened.
-- [ ] When the browser closes (or the extension is reloaded or disabled), everything is gone. In every new session the user must load the markdown file again and load the models again (by importing a JSON file or adding them manually).
-- [ ] If no data is loaded, the popup and settings page show a clear empty state ("No info file loaded", "No models loaded") with a pointer to the relevant section.
+- [x] The options page and popup keep no copy of the data beyond what they currently display, and re-request it from the background when opened.
+- [x] When the browser closes (or the extension is reloaded or disabled), everything is gone. In every new session the user must load the markdown file again and load the models again (by importing a JSON file or adding them manually).
+- [x] If no data is loaded, the popup and settings page show a clear empty state ("No info file loaded", "No models loaded") with a pointer to the relevant section.
 - [x] Session settings (in memory only): **"Replace values in fields that already have something"** is **ON by default**, and returns to ON in each new session.
 - [x] Never write API keys or file contents to the console or to error messages.
 - [x] The README states plainly that nothing is saved between sessions, and that the models Export button is the only way to keep your model configuration.
 
 ## 6. Personal info: markdown file upload
 
-- [ ] The settings page has an upload area for a `.md` file with the information to use when filling forms (not necessarily a resume). Read it locally (FileReader); do not parse it into rows.
+- [x] The settings page has an upload area for a `.md` file with the information to use when filling forms (not necessarily a resume). Read it locally (FileReader); do not parse it into rows.
 - [ ] The text is kept in memory only and included in the prompt sent to the model on every fill, as user-provided reference information. The prompt tells the model to use it only to answer form fields and never to invent data.
-- [ ] Show the file name, character count, and the content in an editable text area. Edits change only the in-memory copy for this session and are never written back to the file. This lets the user add or correct details without re-uploading.
-- [ ] Allow replacing it with another file. One file at a time.
-- [ ] Warn when the file is large (e.g. over ~50 KB), since the whole text goes into every prompt and small local models may struggle.
-- [ ] Reject non-text files and files that are not valid UTF-8 with a clear message.
-- [ ] Show a privacy notice: the file's contents are sent to the active model on every fill, so with a cloud model that data leaves the computer.
+- [x] Show the file name, character count, and the content in an editable text area. Edits change only the in-memory copy for this session and are never written back to the file. This lets the user add or correct details without re-uploading.
+- [x] Allow replacing it with another file. One file at a time.
+- [x] Warn when the file is large (e.g. over ~50 KB), since the whole text goes into every prompt and small local models may struggle.
+- [x] Reject non-text files and files that are not valid UTF-8 with a clear message.
+- [x] Show a privacy notice: the file's contents are sent to the active model on every fill, so with a cloud model that data leaves the computer.
 - [ ] Repeated entries (jobs, education) are written by the user in the markdown, e.g. with headings. The prompt tells the model to treat them as distinct entries.
-- [ ] No label/value row editor, no "common fields" feature, no notes box, no grouped profile. Instructions to the model (e.g. "decline marketing emails") go inside the markdown file.
-- [ ] No import or export of the personal info: no markdown export, no CSV/text import, no PDF/Word parsing. The JSON import/export in section 7 applies to model configurations only.
+- [x] No label/value row editor, no "common fields" feature, no notes box, no grouped profile. Instructions to the model (e.g. "decline marketing emails") go inside the markdown file.
+- [x] No import or export of the personal info: no markdown export, no CSV/text import, no PDF/Word parsing. The JSON import/export in section 7 applies to model configurations only.
 
 ## 7. Model configuration
 
@@ -115,23 +115,23 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 ### 7.1 Manual form
 
-- [ ] A form to add a model with these inputs: `name`, `provider` (dropdown: OpenAI-compatible or Anthropic), `baseUrl`, `model`, `apiKey` (optional, `type="password"` with a show/hide toggle).
-- [ ] Short helper text per field (e.g. "OpenAI-compatible means any server exposing `/chat/completions`: Ollama, LM Studio, llama.cpp, OpenAI, OpenRouter and similar").
-- [ ] Validate with the same rules as the import (shared in `validators.js`): `name` required and unique, `baseUrl` a valid `http(s)` URL, `model` required, `provider` one of the two values. Show inline errors next to the offending input. An invalid form adds nothing.
-- [ ] **Add model** button. After adding, the form is cleared. The first model added becomes the active one.
-- [ ] Models in the list can be edited (loads them into the same form, with **Save changes** and **Cancel**) and removed.
-- [ ] The API key input is never prefilled in visible text; when editing, leaving it empty keeps the existing key and there is a way to explicitly clear it.
+- [x] A form to add a model with these inputs: `name`, `provider` (dropdown: OpenAI-compatible or Anthropic), `baseUrl`, `model`, `apiKey` (optional, `type="password"` with a show/hide toggle).
+- [x] Short helper text per field (e.g. "OpenAI-compatible means any server exposing `/chat/completions`: Ollama, LM Studio, llama.cpp, OpenAI, OpenRouter and similar").
+- [x] Validate with the same rules as the import (shared in `validators.js`): `name` required and unique, `baseUrl` a valid `http(s)` URL, `model` required, `provider` one of the two values. Show inline errors next to the offending input. An invalid form adds nothing.
+- [x] **Add model** button. After adding, the form is cleared. The first model added becomes the active one.
+- [x] Models in the list can be edited (loads them into the same form, with **Save changes** and **Cancel**) and removed.
+- [x] The API key input is never prefilled in visible text; when editing, leaving it empty keeps the existing key and there is a way to explicitly clear it.
 
 ### 7.2 Loaded models list
 
-- [ ] Show each loaded model: name, provider, URL, model name, and the API key masked (at most the last 4 characters; never a full key).
-- [ ] Each model has a **Test connection** button that shows success or a readable error.
-- [ ] The user switches the active model from the popup and from the settings page. The choice lives in memory only.
-- [ ] Empty state: "No models loaded. Add one above or import a JSON file."
+- [x] Show each loaded model: name, provider, URL, model name, and the API key masked (at most the last 4 characters; never a full key).
+- [x] Each model has a **Test connection** button that shows success or a readable error.
+- [x] The user switches the active model from the popup and from the settings page. The choice lives in memory only.
+- [x] Empty state: "No models loaded. Add one above or import a JSON file."
 
 ### 7.3 Import button
 
-- [ ] An **Import models (JSON)** button opens a file picker for a `.json` file with this format:
+- [x] An **Import models (JSON)** button opens a file picker for a `.json` file with this format:
 
 ```json
 {
@@ -167,40 +167,40 @@ The model settings section has four things: a manual form, a list of loaded mode
 }
 ```
 
-- [ ] Fields: `name` (required, unique), `provider` (required: `"openai"` for `/chat/completions` endpoints, or `"anthropic"` for `/v1/messages`), `baseUrl` (required), `model` (required), `apiKey` (optional; not needed for most local models). `activeModel` (optional) selects a model by name; otherwise use the first.
-- [ ] Validate the file on import and show precise errors naming the problem (invalid JSON, which model and which field is missing or wrong, unknown provider, duplicate names, empty list). A rejected file changes nothing. Do not print the example format in error messages.
-- [ ] A successful import replaces the whole set of models for this session. If models are already loaded, ask for confirmation first ("Replace the 3 loaded models?").
+- [x] Fields: `name` (required, unique), `provider` (required: `"openai"` for `/chat/completions` endpoints, or `"anthropic"` for `/v1/messages`), `baseUrl` (required), `model` (required), `apiKey` (optional; not needed for most local models). `activeModel` (optional) selects a model by name; otherwise use the first.
+- [x] Validate the file on import and show precise errors naming the problem (invalid JSON, which model and which field is missing or wrong, unknown provider, duplicate names, empty list). A rejected file changes nothing. Do not print the example format in error messages.
+- [x] A successful import replaces the whole set of models for this session. If models are already loaded, ask for confirmation first ("Replace the 3 loaded models?").
 
 ### 7.4 Export button
 
-- [ ] An **Export models (JSON)** button downloads the current models as a file (suggested name `ai-form-filler-models.json`), in exactly the format above including `activeModel`, so it can be re-imported later without changes. Generate it with a Blob and a temporary download link, and revoke the object URL afterwards.
-- [ ] The export includes API keys in plain text so the file works when re-imported. Before downloading, show a warning that the file contains API keys unencrypted and should be stored carefully, and let the user confirm or cancel.
-- [ ] The button is disabled when no models are loaded.
-- [ ] Round-trip requirement: exporting then importing must result in an identical set of models.
+- [x] An **Export models (JSON)** button downloads the current models as a file (suggested name `ai-form-filler-models.json`), in exactly the format above including `activeModel`, so it can be re-imported later without changes. Generate it with a Blob and a temporary download link, and revoke the object URL afterwards.
+- [x] The export includes API keys in plain text so the file works when re-imported. Before downloading, show a warning that the file contains API keys unencrypted and should be stored carefully, and let the user confirm or cancel.
+- [x] The button is disabled when no models are loaded.
+- [x] Round-trip requirement: exporting then importing must result in an identical set of models.
 
 ### 7.5 Copy example button
 
-- [ ] A **Copy example** button copies the example JSON above (stored in `constants.js`, using placeholders and never real-looking keys) to the clipboard with `navigator.clipboard.writeText`, and shows a short "Copied" confirmation.
-- [ ] If the clipboard is unavailable or denied, show a clear message instead of failing silently.
-- [ ] The example is not rendered on the page, in tooltips, or in error messages. The button is its only access point.
+- [x] A **Copy example** button copies the example JSON above (stored in `constants.js`, using placeholders and never real-looking keys) to the clipboard with `navigator.clipboard.writeText`, and shows a short "Copied" confirmation.
+- [x] If the clipboard is unavailable or denied, show a clear message instead of failing silently.
+- [x] The example is not rendered on the page, in tooltips, or in error messages. The button is its only access point.
 
 ### 7.6 Provider and request behavior
 
-- [ ] Anthropic calls send the `anthropic-version` and `anthropic-dangerous-direct-browser-access` headers. OpenAI-compatible calls send `Authorization: Bearer` only if an `apiKey` is set.
-- [ ] Local model support is a first-class requirement. Request timeout of about 3 minutes (local models are slow). Temperature 0.
-- [ ] Clear error messages: unreachable endpoint, timeout, HTTP errors. For HTTP 403 on Ollama, hint at `OLLAMA_ORIGINS="moz-extension://*"`.
+- [x] Anthropic calls send the `anthropic-version` and `anthropic-dangerous-direct-browser-access` headers. OpenAI-compatible calls send `Authorization: Bearer` only if an `apiKey` is set.
+- [x] Local model support is a first-class requirement. Request timeout of about 3 minutes (local models are slow). Temperature 0.
+- [x] Clear error messages: unreachable endpoint, timeout, HTTP errors. For HTTP 403 on Ollama, hint at `OLLAMA_ORIGINS="moz-extension://*"`.
 - [ ] Parse model output robustly: strip code fences, extract the first JSON object, validate it, report invalid JSON clearly.
-- [ ] Show a notice in this section: model configurations (and any exported file) can contain secrets; the extension only holds them in memory and never saves them anywhere itself.
+- [x] Show a notice in this section: model configurations (and any exported file) can contain secrets; the extension only holds them in memory and never saves them anywhere itself.
 
 ## 8. Clear all data
 
-- [ ] A **Clear all data** button on the settings page, and also in the popup.
-- [ ] It removes from memory: the markdown text, all model configurations including API keys and URLs, the active model, any cached field descriptions or field values, and any pending permission prompts. Session settings return to their defaults (replace = ON).
+- [x] A **Clear all data** button on the settings page, and also in the popup.
+- [x] It removes from memory: the markdown text, all model configurations including API keys and URLs, the active model, any cached field descriptions or field values, and any pending permission prompts. Session settings return to their defaults (replace = ON).
 - [ ] It resets all inputs and previews: the file input, the markdown text area, the manual model form (including the API key input) and the models list. The popup and panels return to their empty state.
-- [ ] It does not delete files the user already exported to disk. Say so in the confirmation message.
-- [ ] Show a confirmation message after clearing ("All data cleared. Load your info file and models again to continue.").
+- [x] It does not delete files the user already exported to disk. Say so in the confirmation message.
+- [x] Show a confirmation message after clearing ("All data cleared. Load your info file and models again to continue.").
 - [ ] Clearing while a fill is in progress cancels that fill.
-- [ ] The button works even when no data is loaded.
+- [x] The button works even when no data is loaded.
 
 ## 9. Field collection and filling
 
@@ -273,12 +273,12 @@ The model settings section has four things: a manual form, a list of loaded mode
 
 ## 14. Privacy and security
 
-- [ ] State clearly in the settings UI that the markdown contents and field values already on the form are sent to the active model, and that with cloud models this data leaves the computer.
-- [ ] No telemetry, no analytics, no network requests except to the endpoints of the models the user has loaded.
+- [x] State clearly in the settings UI that the markdown contents and field values already on the form are sent to the active model, and that with cloud models this data leaves the computer.
+- [x] No telemetry, no analytics, no network requests except to the endpoints of the models the user has loaded.
 - [ ] Model replies can only set values on listed fields. Validate every value (select options, checkbox booleans, radio values) before applying.
 - [ ] Never send passwords, file inputs, or hidden fields to the model.
 - [ ] Prompt injection defense: the system prompt states that page text is data, never instructions.
-- [ ] The only file the extension ever creates is the models export, and only when the user presses Export and confirms the plain-text API key warning.
+- [x] The only file the extension ever creates is the models export, and only when the user presses Export and confirms the plain-text API key warning.
 - [x] Use only the permissions that are required (`notifications`, host access). The `storage` permission is not needed and must not be requested. Use a `downloads` permission only if the Blob + download link approach does not work without it.
 
 ## 15. README manual checklist (no test pages)
@@ -300,7 +300,7 @@ The model settings section has four things: a manual form, a list of loaded mode
 ## 16. Suggested build order
 
 - [x] 1. Project skeleton, manifest, in-memory session state, README.
-- [ ] 2. Settings page: markdown upload, models (manual form, list, test connection, import, export, copy example), Clear all data.
+- [x] 2. Settings page: markdown upload, models (manual form, list, test connection, import, export, copy example), Clear all data.
 - [ ] 3. Background model client and prompt builder.
 - [ ] 4. Content script: picker, panel, collector, filler (core flow end to end on a real form).
 - [ ] 5. Invisible-field safety gate.

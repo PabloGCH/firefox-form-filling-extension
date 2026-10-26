@@ -4,14 +4,18 @@ A Firefox desktop extension that will use a cloud or local language model to fil
 
 ## Progress
 
-- **Last completed task:** Task 1 — Project skeleton, manifest, in-memory session state, README.
-- **Next task:** Task 2 — Settings page: markdown upload, model management, import/export, copy example, and Clear all data.
-- **What works:** The Manifest V2 extension skeleton loads a persistent background page. Session state starts empty, keeps data only in background-page memory, defaults replacement of existing values to on, exposes a safe summary, and can clear or cancel all session data.
-- **Known limitations:** There is no popup, settings page, model client, or content script yet. Only the background skeleton in `src/background/` is implemented.
-- **Verification:** Node syntax checks and background message/state runtime checks passed; forbidden persistence/submission API scans and `git diff --check` passed. `web-ext lint` reported zero errors and two forward-looking warnings: no add-on ID and no data-collection declaration. Firefox UI loading was not exercised in this environment.
+- **Last completed task:** Task 2 — Settings page: markdown upload, model management, import/export, copy example, and Clear all data.
+- **Next task:** Task 3 — Background model client and prompt builder.
+- **What works:** The settings page loads and edits one UTF-8 markdown file in memory; manually adds, edits, removes, selects, and tests models; imports, validates, exports, and copies model JSON; and clears all data. The popup shows empty/loaded status, switches the active model, opens settings, and clears data. Secrets remain in the background except during an explicit settings export.
+- **Known limitations:** Form filling and the on-page panel do not exist yet. Resetting those future UI surfaces after **Clear all data** is deferred to Task 4 in `src/content/`; the underlying session clear already removes their future state. Real file-picker, clipboard, download, and live model-server behavior still need the README manual checks.
+- **Verification:** All JavaScript passed Node syntax checks; state, validation, secret-boundary, provider-header, error, clear, and export/import round-trip checks passed. The settings UI was exercised in a browser with a mocked message boundary, including manual model addition and key masking. `web-ext lint` reported zero errors plus the known future add-on-ID/data-declaration warnings, and Firefox 158 loaded the extension as a temporary add-on in a clean headless profile. No live Ollama, Anthropic, or cloud endpoint was available.
 - **Decisions:**
   - Content scripts will be separate plain JavaScript files listed in dependency order and will share the `AIFormFiller` namespace, avoiding a bundler and runtime libraries.
   - At the user's request, lint/format tooling is omitted. The user granted a one-time edit to remove those mandates from `GUIDELINES.md` and `TODO.md`; verification uses syntax and Firefox manifest checks instead.
+  - Approved export warning: “This file includes API keys in plain text. Anyone with the file can read them. Store it securely. Export models now?”
+  - Approved clear warning: “Clear all in-memory data? This cancels any fill in progress. Files you previously exported to disk will not be deleted.”
+  - Approved the 50 KB markdown warning now used in settings.
+  - Cross-task requirements may remain unticked until their later component exists; Task 2 is complete in its settings/popup scope, while panel reset stays deferred to Task 4.
 - **Open questions:** None.
 
 ## Privacy and session lifetime
@@ -30,7 +34,18 @@ The extension never submits forms. It will not click page buttons without explic
 4. Select **Load Temporary Add-on**.
 5. Choose this repository's `manifest.json`.
 
-Temporary add-ons are removed when Firefox closes. Current Task 1 provides background infrastructure only; user-facing controls arrive in later tasks.
+Temporary add-ons are removed when Firefox closes. Use the toolbar popup to open the settings page.
+
+## Using the current settings
+
+1. Open **AI Form Filler** from the toolbar, then select **Open settings**.
+2. Load one UTF-8 `.md` file. Its editable preview changes only the session copy.
+3. Add models manually or import a models JSON file. Select the active model in settings or the popup.
+4. Use **Test connection** to make a small real request to that model endpoint.
+5. Use **Export models (JSON)** if you want to keep model configuration for another session. The confirmed export includes API keys in plain text.
+6. Use **Clear all data** to remove all in-memory information and restore session defaults.
+
+Form collection and filling are not implemented yet.
 
 ## Personal information markdown
 
