@@ -7,10 +7,15 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   const { SKIPPED_INPUT_TYPES } = globalThis.AIFormFiller.contentConstants;
   const fieldLabels = globalThis.AIFormFiller.fieldLabels;
+  const visibility = globalThis.AIFormFiller.visibility;
 
   // Excludes controls that must never be sent to or changed by the model.
   const isEligibleField = (field) => {
-    if (field.disabled || field.readOnly) {
+    if (
+      field.disabled ||
+      field.readOnly ||
+      visibility.getInvisibleReason(field)
+    ) {
       return false;
     }
 
@@ -102,11 +107,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   // Collects descriptions plus bindings that remain only in this content script.
   const collect = (scope, options = {}) => {
     const replaceExisting = options.replaceExisting !== false;
-    const excludedFields = options.excludedFields || new Set();
     const allFields = getScopeFields(scope);
-    const fields = allFields.filter(
-      (field) => isEligibleField(field) && !excludedFields.has(field),
-    );
+    const fields = allFields.filter(isEligibleField);
     const descriptions = [];
     const bindings = new Map();
     const handledRadios = new Set();
@@ -173,13 +175,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   // Counts currently visible eligible controls for picker feedback.
   const countFillable = (scope) => {
-    const excludedFields = new Set(
-      getScopeFields(scope).filter((field) =>
-        globalThis.AIFormFiller.visibility.getInvisibleReason(field),
-      ),
-    );
-    return collect(scope, { excludedFields, replaceExisting: true }).descriptions
-      .length;
+    return collect(scope, { replaceExisting: true }).descriptions.length;
   };
 
   globalThis.AIFormFiller.fieldCollector = Object.freeze({ collect, countFillable });

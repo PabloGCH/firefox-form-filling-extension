@@ -41,7 +41,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   const format = (summary) => {
     const counts =
       `Done: filled ${summary.filled}, left ${summary.leftBlank} blank, ` +
-      `skipped ${summary.skippedHidden} hidden fields, ` +
       `${summary.unmatchedSelects} unmatched selects, and ` +
       `${summary.deniedClicks} denied clicks. Review the form, then submit it yourself.`;
     const details = summary.unmatchedSelectDetails.join("; ");
@@ -53,7 +52,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     deniedClicks: first.deniedClicks + second.deniedClicks,
     filled: first.filled + second.filled,
     leftBlank: first.leftBlank + second.leftBlank,
-    skippedHidden: first.skippedHidden + second.skippedHidden,
     unmatchedSelectDetails: [
       ...first.unmatchedSelectDetails,
       ...second.unmatchedSelectDetails,

@@ -11,12 +11,11 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     globalThis.AIFormFiller;
 
   // Creates local, per-fill click state without retaining permission history.
-  const createState = (summary, knownElements, safetyResult, firstBatch) => ({
+  const createState = (summary, knownElements, firstBatch) => ({
     blocked: false,
     clickBatches: firstBatch?.requests.length ? [firstBatch] : [],
     knownElements,
     limitReached: false,
-    safetyResult,
     summary,
   });
 
@@ -28,7 +27,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
     state.summary = fillSummary.merge(state.summary, result.summary);
     result.newElements.forEach((element) => state.knownElements.add(element));
-    state.safetyResult = result.safetyResult;
     state.blocked = state.blocked || result.blocked;
     if (result.clickBatch?.requests.length) {
       state.clickBatches.push(result.clickBatch);
@@ -69,7 +67,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         const result = await dependentDropdowns.fillNewFields(
           scope,
           state.knownElements,
-          state.safetyResult,
           replaceExisting,
         );
         addDependentResult(state, result);

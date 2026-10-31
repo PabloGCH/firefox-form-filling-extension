@@ -11,7 +11,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     buttonCandidates,
     fieldCollector,
     fieldFiller,
-    safetyGate,
     sections,
     selectHandler,
   } = globalThis.AIFormFiller;
@@ -44,46 +43,16 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     return { bindings, descriptions };
   };
 
-  // Runs one bounded dependent-field pass with a fresh visibility scan.
+  // Runs one bounded dependent-field pass under the selected area's approval.
   const fillNewFields = async (
     scope,
     initialElements,
-    previousSafety,
     replaceExisting,
   ) => {
     await waitForRender();
-    let safetyResult = previousSafety;
-    const hasNewFinding = safetyGate
-      .scan(scope)
-      .some((finding) => !previousSafety.excludedFields.has(finding.element));
-
-    if (hasNewFinding) {
-      safetyResult = await safetyGate.check(scope);
-
-      if (!safetyResult.allowed) {
-        const newlySkipped = [...safetyResult.excludedFields].filter(
-          (field) => !previousSafety.excludedFields.has(field),
-        ).length;
-        return {
-          blocked: true,
-          clickBatch: null,
-          newElements: new Set(),
-          safetyResult,
-          summary: {
-            deniedClicks: 0,
-            filled: 0,
-            leftBlank: 0,
-            skippedHidden: newlySkipped,
-            unmatchedSelectDetails: [],
-            unmatchedSelects: 0,
-          },
-        };
-      }
-    }
 
     const collected = keepNewBindings(
       fieldCollector.collect(scope, {
-        excludedFields: safetyResult.excludedFields,
         replaceExisting,
       }),
       initialElements,
@@ -101,15 +70,12 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       alreadyFilled: sections.collectAlreadyFilled(scope),
       clickCandidates: candidates.descriptions,
       fields: collected.descriptions,
-      safetyChecked: true,
+      visibilityChecked: true,
     });
     const values = await selectHandler.resolveValues(
       collected.bindings,
       response.values,
     );
-    const newlySkipped = [...safetyResult.excludedFields].filter(
-      (field) => !previousSafety.excludedFields.has(field),
-    ).length;
     return {
       blocked: false,
       clickBatch: {
@@ -121,8 +87,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
           binding.elements || [binding.element],
         ),
       ),
-      safetyResult,
-      summary: fieldFiller.fill(collected.bindings, values, newlySkipped),
+      summary: fieldFiller.fill(collected.bindings, values),
     };
   };
 

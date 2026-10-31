@@ -54,8 +54,8 @@
 
   // Keeps reference text and model credentials inside the background page.
   const fillFields = async (message, sender) => {
-    if (!sender.tab || message.safetyChecked !== true) {
-      throw new Error("The form safety check did not authorize this fill.");
+    if (!sender.tab || message.visibilityChecked !== true) {
+      throw new Error("The visible-field check did not authorize this fill.");
     }
 
     if (!Array.isArray(message.fields) || message.fields.length === 0) {
@@ -100,8 +100,8 @@
 
   // Runs one safety-authorized focused retry for an unmatched select.
   const retrySelect = async (message, sender) => {
-    if (!sender.tab || message.safetyChecked !== true || !message.field) {
-      throw new Error("The form safety check did not authorize this retry.");
+    if (!sender.tab || message.visibilityChecked !== true || !message.field) {
+      throw new Error("The visible-field check did not authorize this retry.");
     }
 
     const infoText = sessionState.getInfoText();
@@ -150,14 +150,20 @@
       }
       case "session:clear":
         return clearSessionData();
-      case "notification:hidden-fields":
-        return notifications.showHiddenFieldsWarning();
       case "notification:fill-result":
         return notifications.showFillResult(message.outcome, message.category);
       case "fill:request":
         return fillFields(message, sender);
+      case "fill:cancel":
+        if (!sender.tab) {
+          throw new Error("Only an active webpage can cancel a fill.");
+        }
+        sessionState.cancelFill();
+        return undefined;
       case "fill:retry-select":
         return retrySelect(message, sender);
+      case "settings:open":
+        return browser.runtime.openOptionsPage();
       case "settings:get-info":
         requireExtensionPage(sender);
         return sessionState.getInfoForOptions();
@@ -208,4 +214,16 @@
   };
 
   browser.runtime.onMessage.addListener(handleMessage);
+
+  // Uses the toolbar button as the sole entry point for the in-page panel.
+  browser.browserAction.onClicked.addListener(async (tab) => {
+    try {
+      if (!tab.id) {
+        throw new Error("No active webpage is available.");
+      }
+      await browser.tabs.sendMessage(tab.id, { type: "panel:toggle" });
+    } catch {
+      await notifications.showUnsupportedPage();
+    }
+  });
 })();

@@ -5,16 +5,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 (() => {
   "use strict";
 
-  const { FILL_FAILURE_CATEGORIES, HIDDEN_FIELDS_NOTIFICATION } =
-    globalThis.AIFormFiller.constants;
-
-  // Alerts the user to review the detailed, private on-page safety panel.
-  const showHiddenFieldsWarning = () =>
-    browser.notifications.create({
-      type: "basic",
-      title: "AI Form Filler",
-      message: HIDDEN_FIELDS_NOTIFICATION,
-    });
+  const { FILL_FAILURE_CATEGORIES } = globalThis.AIFormFiller.constants;
 
   // Sends one brief final result without including field counts or page data.
   const showFillResult = (outcome, category = "the fill could not be completed") => {
@@ -38,8 +29,16 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     });
   };
 
+  // Explains why the toolbar action cannot open on protected browser pages.
+  const showUnsupportedPage = () =>
+    browser.notifications.create({
+      type: "basic",
+      title: "AI Form Filler",
+      message: "The form filler cannot run on this page. Open a regular webpage and try again.",
+    });
+
   globalThis.AIFormFiller.notifications = Object.freeze({
     showFillResult,
-    showHiddenFieldsWarning,
+    showUnsupportedPage,
   });
 })();

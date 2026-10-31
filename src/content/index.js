@@ -1,43 +1,68 @@
-/* Connects popup and panel commands to content-script features. */
+/* Connects toolbar panel commands to content-script features. */
 
 (() => {
   "use strict";
 
-  const { fieldCollector, fillFlow, panel, picker } = globalThis.AIFormFiller;
+  const { fieldCollector, fillFlow, fillPreparation, panel, picker } =
+    globalThis.AIFormFiller;
+  let operationVersion = 0;
 
   // Starts area selection with keyboard instructions and field-count feedback.
   const selectArea = async () => {
-    panel.show(
+    const selectionVersion = ++operationVersion;
+    panel.showBusy(
       "Move over an area and click to select it. ArrowUp widens, ArrowDown narrows, and Esc cancels.",
     );
     const selected = await picker.select();
 
+    if (selectionVersion !== operationVersion || !panel.isOpen()) {
+      return;
+    }
     if (!selected) {
-      panel.setStatus("Area selection canceled.");
+      panel.show("Area selection canceled.");
       return;
     }
 
     const count = fieldCollector.countFillable(selected);
-    panel.setStatus(`Selected area contains ${count} fillable fields.`);
+    panel.show(`Selected area contains ${count} visible fillable fields.`);
   };
 
-  // Handles popup commands and session clearing from the background page.
+  // Cancels all active work, clears the required scope, and dismisses the UI.
+  const cancel = () => {
+    operationVersion += 1;
+    fillFlow.cancel();
+    picker.clear();
+    panel.close();
+  };
+
+  const openSettings = async () => {
+    try {
+      await browser.runtime.sendMessage({ type: "settings:open" });
+      if (panel.isOpen()) {
+        panel.setStatus("Settings opened in a new tab.");
+      }
+    } catch (error) {
+      if (panel.isOpen()) {
+        panel.setStatus(error.message || "Settings could not be opened.");
+      }
+    }
+  };
+
+  const selectModel = (name) =>
+    browser.runtime.sendMessage({ type: "settings:set-active-model", name });
+
+  // Handles toolbar toggling and session clearing from the background page.
   const handleMessage = (message) => {
     switch (message?.type) {
-      case "panel:show":
-        panel.show();
-        return Promise.resolve();
-      case "fill:start":
-        fillFlow.run(Boolean(message.newFieldsOnly));
-        return Promise.resolve();
-      case "picker:start":
-        selectArea();
-        return Promise.resolve();
-      case "selection:clear":
-        picker.clear();
-        panel.setStatus("Selected area cleared. The whole page will be used.");
+      case "panel:toggle":
+        if (panel.isOpen()) {
+          cancel();
+        } else {
+          panel.show();
+        }
         return Promise.resolve();
       case "session:cleared":
+        operationVersion += 1;
         fillFlow.clearSession();
         picker.clear();
         panel.close();
@@ -47,6 +72,14 @@
     }
   };
 
-  panel.initialize({ fill: fillFlow.run, selectArea });
+  panel.initialize({
+    cancel,
+    canFill: fillPreparation.hasSelectedScope,
+    fill: fillFlow.run,
+    getSummary: () => browser.runtime.sendMessage({ type: "session:get-summary" }),
+    openSettings,
+    selectArea,
+    selectModel,
+  });
   browser.runtime.onMessage.addListener(handleMessage);
 })();

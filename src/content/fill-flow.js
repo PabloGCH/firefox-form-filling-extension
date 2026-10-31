@@ -1,4 +1,4 @@
-/* Runs one safety-gated model request and applies only returned listed-field values. */
+/* Requests values for visible fields and applies only returned listed-field values. */
 
 globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
@@ -19,10 +19,8 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   let fillInProgress = false;
   let sessionVersion = 0;
 
-  // Performs one fill only after the safety gate returns an explicit decision.
+  // Performs one fill using only visible fields in the selected area.
   const run = async (newFieldsOnly = false) => {
-    panel.show();
-
     if (fillInProgress) {
       panel.setStatus("A fill is already in progress.");
       return;
@@ -30,6 +28,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
     fillInProgress = true;
     const fillVersion = sessionVersion;
+    panel.showBusy("Collecting visible fields from the selected area…");
 
     try {
       const prepared = await fillPreparation.prepare(
@@ -39,11 +38,11 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       if (!prepared) {
         return;
       }
-      const { collected, replaceExisting, safetyResult, scopeResult } = prepared;
+      const { collected, replaceExisting, scopeResult } = prepared;
 
       if (collected.descriptions.length === 0) {
-        panel.setStatus("No fillable inputs were found in this area.");
         await summaryTools.notify("failure", "no inputs were found");
+        panel.show("No fillable inputs were found in this area.");
         return;
       }
 
@@ -59,7 +58,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         alreadyFilled,
         clickCandidates: candidates.descriptions,
         fields: collected.descriptions,
-        safetyChecked: true,
+        visibilityChecked: true,
       });
 
       if (fillVersion !== sessionVersion) {
@@ -71,16 +70,11 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         response.values,
       );
       const initialElements = summaryTools.getBindingElements(collected.bindings);
-      let fillSummary = fieldFiller.fill(
-        collected.bindings,
-        values,
-        safetyResult.skippedHidden,
-      );
+      let fillSummary = fieldFiller.fill(collected.bindings, values);
       let dependentError = null;
       const clickState = clickFlow.createState(
         fillSummary,
         initialElements,
-        safetyResult,
         {
           bindings: candidates.bindings,
           requests: response.clickRequests,
@@ -91,7 +85,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
         const dependentSummary = await dependentDropdowns.fillNewFields(
           scopeResult.scope,
           initialElements,
-          safetyResult,
           replaceExisting,
         );
 
@@ -115,30 +108,29 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       }
 
       const finalStatus = summaryTools.format(fillSummary);
-      panel.setStatus(
-        dependentError
-          ? `${finalStatus} Additional fields could not be filled: ${dependentError}`
-          : finalStatus,
-      );
+      const resultStatus = dependentError
+        ? `${finalStatus} Additional fields could not be filled: ${dependentError}`
+        : finalStatus;
       const partial =
         Boolean(dependentError) ||
         clickState.blocked ||
         clickState.limitReached ||
         fillSummary.deniedClicks > 0 ||
         fillSummary.leftBlank > 0 ||
-        fillSummary.skippedHidden > 0 ||
         fillSummary.unmatchedSelects > 0;
       await summaryTools.notify(partial ? "partial" : "success");
+      panel.show(resultStatus);
     } catch (error) {
       if (fillVersion !== sessionVersion) {
         return;
       }
 
-      panel.setStatus(error.message || "The fill could not be completed.");
+      const errorMessage = error.message || "The fill could not be completed.";
       await summaryTools.notify(
         "failure",
-        summaryTools.getFailureCategory(error.message || ""),
+        summaryTools.getFailureCategory(errorMessage),
       );
+      panel.show(errorMessage);
     } finally {
       fillInProgress = false;
     }
@@ -150,5 +142,12 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     fillInProgress = false;
   };
 
-  globalThis.AIFormFiller.fillFlow = Object.freeze({ clearSession, run });
+  // Invalidates page work and asks the background page to abort its model request.
+  const cancel = () => {
+    sessionVersion += 1;
+    fillInProgress = false;
+    browser.runtime.sendMessage({ type: "fill:cancel" }).catch(() => {});
+  };
+
+  globalThis.AIFormFiller.fillFlow = Object.freeze({ cancel, clearSession, run });
 })();

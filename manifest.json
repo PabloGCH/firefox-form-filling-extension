@@ -5,7 +5,7 @@
   "description": "Fill web forms with session-only personal information and a user-configured model.",
   "browser_specific_settings": {
     "gecko": {
-      "strict_min_version": "119.0"
+      "strict_min_version": "125.0"
     }
   },
   "permissions": ["<all_urls>", "notifications"],
@@ -26,8 +26,7 @@
     "persistent": true
   },
   "browser_action": {
-    "default_title": "AI Form Filler",
-    "default_popup": "src/popup/popup.html"
+    "default_title": "AI Form Filler"
   },
   "options_ui": {
     "page": "src/options/options.html",
@@ -42,7 +41,6 @@
         "src/content/panel.js",
         "src/content/panel-prompts.js",
         "src/content/button-candidates.js",
-        "src/content/safety-gate.js",
         "src/content/picker.js",
         "src/content/field-labels.js",
         "src/content/field-collector.js",

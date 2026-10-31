@@ -1,4 +1,4 @@
-/* Classifies concealed controls for field safety and button click checks. */
+/* Classifies concealed controls for field collection and button click checks. */
 
 globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
@@ -7,53 +7,6 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   const { CLIP_TOLERANCE_PX, FAR_OFFSCREEN_PX, NEAR_ZERO_PX } =
     globalThis.AIFormFiller.contentConstants;
-
-  // Identifies controls exempt from hidden-field scanning by requirement.
-  const shouldSkipField = (field) => {
-    const type = field instanceof HTMLInputElement ? field.type : "";
-    return field.disabled || type === "hidden";
-  };
-
-  // Checks a label and its ancestors for strong visibility signals.
-  const isVisibleLabel = (label) => {
-    const rect = label.getBoundingClientRect();
-
-    if (rect.width <= NEAR_ZERO_PX || rect.height <= NEAR_ZERO_PX) {
-      return false;
-    }
-
-    let current = label;
-
-    while (current instanceof Element) {
-      const style = getComputedStyle(current);
-
-      if (
-        current.hasAttribute("hidden") ||
-        style.display === "none" ||
-        style.visibility === "hidden" ||
-        Number(style.opacity) === 0
-      ) {
-        return false;
-      }
-
-      current = current.parentElement;
-    }
-
-    return true;
-  };
-
-  // Exempts conventional visually hidden controls represented by visible labels.
-  const hasVisibleCustomControlLabel = (field) => {
-    if (!(field instanceof HTMLInputElement)) {
-      return false;
-    }
-
-    if (!["checkbox", "radio", "file"].includes(field.type)) {
-      return false;
-    }
-
-    return [...field.labels].some(isVisibleLabel);
-  };
 
   // Reports clipping when an overflow ancestor excludes the field rectangle.
   const getClippingReason = (fieldRect, ancestors) => {
@@ -122,8 +75,12 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   // Returns the first strong invisibility signal or null for a visible element.
   const getInvisibleReason = (field) => {
-    if (shouldSkipField(field) || hasVisibleCustomControlLabel(field)) {
-      return null;
+    if (field.disabled) {
+      return "the control is disabled";
+    }
+
+    if (field instanceof HTMLInputElement && field.type === "hidden") {
+      return "the hidden input type";
     }
 
     const ancestors = [];
@@ -159,6 +116,5 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   globalThis.AIFormFiller.visibility = Object.freeze({
     getInvisibleReason,
-    shouldSkipField,
   });
 })();

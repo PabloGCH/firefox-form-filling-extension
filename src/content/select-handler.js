@@ -5,7 +5,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 (() => {
   "use strict";
 
-  const { selectMatcher } = globalThis.AIFormFiller;
+  const { selectMatcher, visibility } = globalThis.AIFormFiller;
 
   // Resolves all native selects while leaving non-select values unchanged.
   const resolveValues = async (bindings, originalValues) => {
@@ -19,6 +19,10 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
       const answer = values[id];
 
       if (answer === undefined || answer === null) {
+        continue;
+      }
+      if (visibility.getInvisibleReason(binding.element)) {
+        delete values[id];
         continue;
       }
 
@@ -35,7 +39,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
             type: "fill:retry-select",
             field: binding.description,
             previousAnswer: answer,
-            safetyChecked: true,
+            visibilityChecked: true,
           });
           result = selectMatcher.match(
             options,

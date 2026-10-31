@@ -82,7 +82,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   // Re-finds a selected element after a DOM replacement or reports failure.
   const getScope = () => {
     if (!selectedLocator) {
-      return { missing: false, scope: document.body, selected: false };
+      return { missing: false, scope: null, selected: false };
     }
 
     if (selectedElement?.isConnected) {

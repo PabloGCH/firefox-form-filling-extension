@@ -152,6 +152,12 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     state.activeFillController = null;
   };
 
+  // Stops the current model request without clearing the rest of the session.
+  const cancelFill = () => {
+    state.activeFillController?.abort();
+    state.activeFillController = null;
+  };
+
   // Builds the exact export shape, including secrets, on explicit request.
   const getModelsForExport = () => ({
     activeModel: state.activeModelName,
@@ -177,6 +183,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   globalThis.AIFormFiller.sessionState = Object.freeze({
     addModel,
     beginFill,
+    cancelFill,
     clearAllData,
     finishFill,
     getActiveModel,

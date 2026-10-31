@@ -7,6 +7,7 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
 
   const { FILLED_HIGHLIGHT, STATUS_VALUE_MAX_LENGTH } =
     globalThis.AIFormFiller.contentConstants;
+  const visibility = globalThis.AIFormFiller.visibility;
   const highlightedFields = new WeakMap();
 
   // Uses the native setter so controlled frameworks observe the new value.
@@ -147,18 +148,28 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
   };
 
   // Applies values only through their local binding and reports basic counts.
-  const fill = (bindings, values, skippedHidden = 0) => {
+  const fill = (bindings, values) => {
     const summary = {
       deniedClicks: 0,
       filled: 0,
       leftBlank: 0,
-      skippedHidden,
       unmatchedSelectDetails: [],
       unmatchedSelects: 0,
     };
     globalThis.AIFormFiller.submitGuard.start();
 
     bindings.forEach((binding, id) => {
+      const elements = binding.elements || [binding.element];
+      if (
+        elements.some(
+          (element) =>
+            element.disabled ||
+            element.readOnly ||
+            visibility.getInvisibleReason(element),
+        )
+      ) {
+        return;
+      }
       const value = values[id];
 
       if (value === undefined || value === null) {

@@ -55,7 +55,9 @@ globalThis.AIFormFiller = globalThis.AIFormFiller || {};
     }
 
     if (!buttonCandidates.isValidBinding(binding, scope)) {
-      panel.show("The approved button changed or became unavailable, so it was not clicked.");
+      panel.showBusy(
+        "The approved button changed or became unavailable. Continuing without it…",
+      );
       return "unavailable";
     }
 
